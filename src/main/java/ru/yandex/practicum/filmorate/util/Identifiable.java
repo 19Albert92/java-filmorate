@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.model.utill;
+package ru.yandex.practicum.filmorate.util;
 
 public interface Identifiable {
     Long getId();

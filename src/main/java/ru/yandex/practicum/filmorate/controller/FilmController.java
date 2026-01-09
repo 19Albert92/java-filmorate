@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.NotValidParamException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.utill.OnUpdate;
+import ru.yandex.practicum.filmorate.util.OnUpdate;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -40,11 +40,6 @@ public class FilmController extends BaseController<Film> {
         if (findFilm == null) {
             logger.debug("Фильм с таким id -> {} не был найден", film.getId());
             throw new NotFoundException(String.format("Фильм с таким id:%s не был найден", film.getId()));
-        }
-
-        if (!film.getReleaseDate().isAfter(MIN_RELEASE_DATE)) {
-            logger.debug("Дата релиза — не соответствует валидации");
-            throw new NotValidParamException(String.format("Дата релиза: %s не соответствует валидации, ", film.getReleaseDate()));
         }
 
         findFilm.setName(film.getName());

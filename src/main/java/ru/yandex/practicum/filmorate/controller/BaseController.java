@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.yandex.practicum.filmorate.model.utill.Identifiable;
+import ru.yandex.practicum.filmorate.util.Identifiable;
 
 import java.util.Collection;
 import java.util.HashMap;
