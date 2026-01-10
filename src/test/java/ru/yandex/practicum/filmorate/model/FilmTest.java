@@ -4,11 +4,12 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import jakarta.validation.groups.Default;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.yandex.practicum.filmorate.util.OnUpdate;
+import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -41,7 +42,7 @@ public class FilmTest {
         assertTrue(violations.isEmpty(),
                 "Ошибок быть не должно, так как ID не обязателен для группы по умолчанию");
 
-        violations = validator.validate(film, OnUpdate.class);
+        violations = validator.validate(film, OnUpdate.class, Default.class);
 
         assertTrue(
                 violations.stream()

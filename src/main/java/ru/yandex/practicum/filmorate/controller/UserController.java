@@ -1,11 +1,12 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.util.OnUpdate;
+import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
 
 import java.util.Collection;
 
@@ -29,7 +30,7 @@ public class UserController extends BaseController<User> {
     }
 
     @PutMapping
-    public User update(@RequestBody @Validated(OnUpdate.class) User user) {
+    public User update(@RequestBody @Validated({OnUpdate.class, Default.class}) User user) {
 
         User findUser = super.findById(user.getId());
 

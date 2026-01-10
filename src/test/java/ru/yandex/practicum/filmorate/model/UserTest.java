@@ -4,11 +4,12 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import jakarta.validation.groups.Default;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.yandex.practicum.filmorate.util.OnUpdate;
+import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -104,7 +105,7 @@ class UserTest {
                 .build();
         user.setBirthday(LocalDate.of(1990, 5, 5));
 
-        Set<ConstraintViolation<User>> violations = validator.validate(user, OnUpdate.class);
+        Set<ConstraintViolation<User>> violations = validator.validate(user, OnUpdate.class, Default.class);
 
         assertFalse(violations.isEmpty(), "При обновлении ID обязателен");
         assertTrue(violations.stream()

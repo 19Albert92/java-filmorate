@@ -1,11 +1,12 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.util.OnUpdate;
+import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
 
 import java.util.Collection;
 
@@ -18,13 +19,13 @@ public class FilmController extends BaseController<Film> {
 
         film.setId(super.add(film));
 
-        logger.debug("Фильм успешно добавлен: {}", film);
+        logger.info("Фильм успешно добавлен: {}", film);
 
         return film;
     }
 
     @PutMapping
-    public Film update(@RequestBody @Validated(OnUpdate.class) Film film) {
+    public Film update(@RequestBody @Validated({OnUpdate.class, Default.class}) Film film) {
 
         Film findFilm = super.findById(film.getId());
 
