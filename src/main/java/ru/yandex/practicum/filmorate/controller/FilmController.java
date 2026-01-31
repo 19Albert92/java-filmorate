@@ -26,7 +26,7 @@ public class FilmController {
         return filmService.findAll();
     }
 
-    @GetMapping("popular")
+    @GetMapping("/popular")
     public Collection<Film> findPopularFilms(
             @RequestParam(defaultValue = "10") Integer count
     ) {
@@ -40,6 +40,7 @@ public class FilmController {
     public Film create(@RequestBody @Valid Film film) {
         return filmService.create(film);
     }
+
     @PutMapping("/{id}/like/{userId}")
     public Film addLike(
             @PathVariable Long id,
