@@ -1,7 +1,8 @@
-package ru.yandex.practicum.filmorate.util.validate;
+package ru.yandex.practicum.filmorate.util.validate.impl;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import ru.yandex.practicum.filmorate.util.validate.MinDateValidator;
 
 import java.time.LocalDate;
 
