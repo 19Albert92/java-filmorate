@@ -31,7 +31,7 @@ public class UserController {
             @PathVariable Long id
     ) {
 
-        CommonValidate.checkNotNegative(id, "Параметр id должен быть положительным");
+        CommonValidate.checkNotNullAndPositive(id, "Параметр id должен быть положительным");
 
         return userService.findById(id);
     }
@@ -41,7 +41,7 @@ public class UserController {
             @PathVariable Long id
     ) {
 
-        CommonValidate.checkNotNegative(id, "Параметр id должен быть положительным");
+        CommonValidate.checkNotNullAndPositive(id, "Параметр id должен быть положительным");
 
         return userService.getAllFriends(id);
     }
@@ -51,9 +51,9 @@ public class UserController {
             @PathVariable Long id,
             @PathVariable Long otherId
     ) {
-        CommonValidate.checkNotNegative(id, "Параметр id должен быть положительным");
+        CommonValidate.checkNotNullAndPositive(id, "Параметр id должен быть положительным");
 
-        CommonValidate.checkNotNegative(otherId, "Параметр otherId должен быть положительным");
+        CommonValidate.checkNotNullAndPositive(otherId, "Параметр otherId должен быть положительным");
 
         return userService.getAllCommonFriends(id, otherId);
     }
@@ -76,9 +76,9 @@ public class UserController {
             @PathVariable Long friendId
     ) {
 
-        CommonValidate.checkNotNegative(id, "Параметр id должен быть положительным");
+        CommonValidate.checkNotNullAndPositive(id, "Параметр id должен быть положительным");
 
-        CommonValidate.checkNotNegative(friendId, "Параметр friendId должен быть положительным");
+        CommonValidate.checkNotNullAndPositive(friendId, "Параметр friendId должен быть положительным");
 
         return userService.addFriend(id, friendId);
     }
@@ -89,9 +89,9 @@ public class UserController {
             @PathVariable Long friendId
     ) {
 
-        CommonValidate.checkNotNegative(id, "Параметр id должен быть положительным");
+        CommonValidate.checkNotNullAndPositive(id, "Параметр id должен быть положительным");
 
-        CommonValidate.checkNotNegative(friendId, "Параметр id должен быть положительным");
+        CommonValidate.checkNotNullAndPositive(friendId, "Параметр id должен быть положительным");
 
         return userService.deleteFriend(id, friendId);
     }

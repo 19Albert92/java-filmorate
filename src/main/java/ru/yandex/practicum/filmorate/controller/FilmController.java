@@ -31,7 +31,7 @@ public class FilmController {
             @RequestParam(defaultValue = "10") Integer count
     ) {
 
-        CommonValidate.checkNotNegative(count, "Параметр count должен быть положительным");
+        CommonValidate.checkNotNullAndPositive(count, "Параметр count должен быть положительным");
 
         return filmService.getPopularFilmByLikes(count);
     }
@@ -47,9 +47,9 @@ public class FilmController {
             @PathVariable Long userId
     ) {
 
-        CommonValidate.checkNotNegative(id, "Параметр id должен быть положительным");
+        CommonValidate.checkNotNullAndPositive(id, "Параметр id должен быть положительным");
 
-        CommonValidate.checkNotNegative(userId, "Параметр userId должен быть положительным");
+        CommonValidate.checkNotNullAndPositive(userId, "Параметр userId должен быть положительным");
 
         return filmService.addLike(id, userId);
     }
@@ -65,9 +65,9 @@ public class FilmController {
             @PathVariable Long userId
     ) {
 
-        CommonValidate.checkNotNegative(id, "Параметр id должен быть положительным");
+        CommonValidate.checkNotNullAndPositive(id, "Параметр id должен быть положительным");
 
-        CommonValidate.checkNotNegative(userId, "Параметр userId должен быть положительным");
+        CommonValidate.checkNotNullAndPositive(userId, "Параметр userId должен быть положительным");
 
         return filmService.deleteLike(id, userId);
     }
