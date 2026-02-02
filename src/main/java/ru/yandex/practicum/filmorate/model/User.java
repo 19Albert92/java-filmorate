@@ -29,12 +29,28 @@ public class User implements Identifiable {
     private LocalDate birthday;
     private Set<Long> friends;
 
-    public void toggleFriend(Long friendId) {
+    public Set<Long> getFriends() {
+
         if (this.friends == null) {
-            this.friends = new HashSet<>();
-            this.friends.add(friendId);
-        } else {
-            this.friends.add(friendId);
+            return new HashSet<>();
+        }
+
+        return friends;
+    }
+
+    public void addFriend(Long friendId) {
+        if (!this.getFriends().contains(friendId)) {
+            Set<Long> friends = getFriends();
+            friends.add(friendId);
+            setFriends(friends);
+        }
+    }
+
+    public void deleteFriend(Long friendId) {
+        if (this.getFriends().contains(friendId)) {
+            Set<Long> friends = getFriends();
+            friends.remove(friendId);
+            setFriends(friends);
         }
     }
 }

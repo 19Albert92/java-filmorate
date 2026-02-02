@@ -10,7 +10,7 @@ public class InMemoryFilmStorage extends BaseStorage<Film> implements FilmStorag
     @Override
     public Film create(Film data) {
 
-        Film newFilm = super.add(data);
+        Film newFilm = this.add(data);
 
         logger.info("Фильм успешно добавлен: {}", newFilm);
 

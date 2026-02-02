@@ -40,6 +40,7 @@ public abstract class BaseStorage<T extends Identifiable> {
     protected T add(T obj) {
         long generatedId = getNextId();
         obj.setId(generatedId);
-        return dataList.put(generatedId, obj);
+        dataList.put(generatedId, obj);
+        return obj;
     }
 }

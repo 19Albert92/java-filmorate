@@ -31,12 +31,12 @@ public class Film implements Identifiable {
     private Long duration;
     private Set<Long> likes;
 
-    public void toggleLikes(Long friendId) {
+    public Set<Long> getLikes() {
+
         if (this.likes == null) {
-            this.likes = new HashSet<>();
-            this.likes.add(friendId);
-        } else {
-            this.likes.add(friendId);
+            return new HashSet<>();
         }
+
+        return likes;
     }
 }

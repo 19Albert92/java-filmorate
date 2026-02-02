@@ -24,7 +24,9 @@ public class UserServiceImpl implements UserService {
 
         User findFriendUser = userStorage.findById(friendId);
 
-        findUser.toggleFriend(findFriendUser.getId());
+        findUser.addFriend(friendId);
+
+        findFriendUser.addFriend(id);
 
         return userStorage.update(findUser);
     }
@@ -36,7 +38,9 @@ public class UserServiceImpl implements UserService {
 
         User findFriendUser = userStorage.findById(friendId);
 
-        findUser.toggleFriend(findFriendUser.getId());
+        findUser.deleteFriend(friendId);
+
+        findFriendUser.deleteFriend(id);
 
         return userStorage.update(findUser);
     }

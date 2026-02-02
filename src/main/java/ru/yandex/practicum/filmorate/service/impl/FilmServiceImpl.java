@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Set;
 
 @Service
 public class FilmServiceImpl implements FilmService {
@@ -29,7 +30,14 @@ public class FilmServiceImpl implements FilmService {
 
         Film findFilm = filmStorage.findById(id);
 
-        findFilm.toggleLikes(findUser.getId());
+        if (!findFilm.getLikes().contains(userid)) {
+
+            Set<Long> likes = findFilm.getLikes();
+
+            likes.add(findUser.getId());
+
+            findFilm.setLikes(likes);
+        }
 
         return filmStorage.update(findFilm);
     }
@@ -41,7 +49,14 @@ public class FilmServiceImpl implements FilmService {
 
         Film findFilm = filmStorage.findById(id);
 
-        findFilm.toggleLikes(findUser.getId());
+        if (findFilm.getLikes().contains(userid)) {
+
+            Set<Long> likes = findFilm.getLikes();
+
+            likes.remove(findUser.getId());
+
+            findFilm.setLikes(likes);
+        }
 
         return filmStorage.update(findFilm);
     }
@@ -49,12 +64,12 @@ public class FilmServiceImpl implements FilmService {
     @Override
     public Collection<Film> getPopularFilmByLikes(Integer count) {
 
-        Comparator<Film> comparatorSortByLikes = Comparator.comparingInt(film -> film.getLikes().size());
+        Comparator<Film> comparatorSortByLikes =
+                Comparator.comparingInt(film -> film.getLikes().size());
 
         return filmStorage.findAll().stream()
-                .filter(film -> film.getLikes() != null)
-                .sorted(comparatorSortByLikes)
-                .skip(count)
+                .sorted(comparatorSortByLikes.reversed())
+                .limit(count)
                 .toList();
     }
 

@@ -10,9 +10,11 @@ public class InMemoryUserStorage extends BaseStorage<User> implements UserStorag
     @Override
     public User create(User data) {
 
-        logger.debug("Пользователь успешно добавлен: {}", data);
+        User user = this.add(data);
 
-        return super.add(data);
+        logger.debug("Пользователь успешно добавлен: {}", user);
+
+        return user;
     }
 
     @Override
