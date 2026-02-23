@@ -1,35 +1,63 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.ValidationErrorResponse;
-import ru.yandex.practicum.filmorate.model.Violation;
+import ru.yandex.practicum.filmorate.exception.NotFoundDateException;
+import ru.yandex.practicum.filmorate.exception.NotValidParamException;
+import ru.yandex.practicum.filmorate.exception.ParamNullPointerException;
+import ru.yandex.practicum.filmorate.model.ErrorResponse;
 
-import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class BaseExceptionHandler {
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ValidationErrorResponse onMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
-        final List<Violation> violation = exception.getBindingResult().getFieldErrors().stream()
-                .map(error -> new Violation(error.getField(), error.getDefaultMessage()))
-                .toList();
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
+            MethodArgumentNotValidException exception) {
 
-        return new ValidationErrorResponse(violation, HttpStatus.BAD_REQUEST.value());
+        Map<String, String> errorDetails = exception.getBindingResult().getFieldErrors().stream()
+                .collect(Collectors.toMap(
+                        FieldError::getField,
+                        error -> error.getDefaultMessage() != null ? error.getDefaultMessage() :
+                                "Ошибка валидации"
+                ));
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("Ошибка валидации", errorDetails));
     }
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(NotFoundException.class)
-    public ValidationErrorResponse onNotFoundIdValidateException(NotFoundException exception) {
-        return new ValidationErrorResponse(
-                List.of(new Violation("id", exception.getLocalizedMessage())),
-                HttpStatus.BAD_REQUEST.value()
-        );
+    @ExceptionHandler(NotFoundDateException.class)
+    public ResponseEntity<ErrorResponse> handleNotFoundIdValidateException(NotFoundDateException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(e.getMessage(), Map.of()));
+    }
+
+    @ExceptionHandler(NotValidParamException.class)
+    public ResponseEntity<ErrorResponse> handleNotValidParamException(NotValidParamException e) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(e.getMessage(), Map.of()));
+    }
+
+    @ExceptionHandler(ParamNullPointerException.class)
+    public ResponseEntity<ErrorResponse> handleParamNullPointerException(ParamNullPointerException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(e.getMessage(), Map.of()));
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleThrowable(final Throwable e) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse(e.getMessage(), Map.of()));
     }
 }

@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.util.validate;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
+import ru.yandex.practicum.filmorate.util.validate.impl.MinDateValidatorImpl;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

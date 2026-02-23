@@ -4,65 +4,95 @@ import jakarta.validation.Valid;
 import jakarta.validation.groups.Default;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.util.validate.CommonValidate;
 import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
 
 import java.util.Collection;
 
 @RestController
 @RequestMapping("/users")
-public class UserController extends BaseController<User> {
+public class UserController {
 
-    @PostMapping
-    public User create(@RequestBody @Valid User user) {
+    private final UserService userService;
 
-        if (user.getName() == null || user.getName().isBlank()) {
-            logger.trace("В username записался login из за отсутствие");
-            user.setName(user.getLogin());
-        }
-
-        user.setId(super.add(user));
-
-        logger.debug("Пользователь успешно добавлен: {}", user);
-
-        return user;
-    }
-
-    @PutMapping
-    public User update(@RequestBody @Validated({OnUpdate.class, Default.class}) User user) {
-
-        User findUser = super.findById(user.getId());
-
-        if (findUser == null) {
-            logger.debug("Пользователь с таким id -> {} не был найден", user.getId());
-            throw new NotFoundException(String.format("Пользователь с таким id:%s не был найден", user.getId()));
-        }
-
-        findUser.setEmail(user.getEmail());
-        logger.trace("Обновлен email на {}", user.getEmail());
-
-        findUser.setLogin(user.getLogin());
-        logger.trace("Обновлен login на {}", user.getLogin());
-
-        if ((user.getName() == null || !user.getName().isBlank()) && findUser.getName().equals(findUser.getLogin())) {
-            findUser.setName(user.getLogin());
-            logger.trace("Обновлен name на {}", user.getName());
-        } else {
-            findUser.setName(user.getName());
-            logger.trace("Обновлен name на {}", user.getName());
-        }
-
-        findUser.setBirthday(user.getBirthday());
-        logger.trace("Обновлен birthday на {}", user.getBirthday());
-
-        logger.info("Пользователь успешно обновлен: {}", findUser);
-
-        return findUser;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @GetMapping
     public Collection<User> findAll() {
-        return super.findAll();
+        return userService.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public User findById(
+            @PathVariable Long id
+    ) {
+
+        CommonValidate.checkNotNullAndPositive(id, "Параметр id должен быть положительным");
+
+        return userService.findById(id);
+    }
+
+    @GetMapping("/{id}/friends")
+    public Collection<User> getFiendsByUser(
+            @PathVariable Long id
+    ) {
+
+        CommonValidate.checkNotNullAndPositive(id, "Параметр id должен быть положительным");
+
+        return userService.getAllFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public Collection<User> getCommonFriends(
+            @PathVariable Long id,
+            @PathVariable Long otherId
+    ) {
+        CommonValidate.checkNotNullAndPositive(id, "Параметр id должен быть положительным");
+
+        CommonValidate.checkNotNullAndPositive(otherId, "Параметр otherId должен быть положительным");
+
+        return userService.getAllCommonFriends(id, otherId);
+    }
+
+    @PostMapping
+    public User create(@RequestBody @Valid User user) {
+        return userService.create(user);
+    }
+
+    @PutMapping
+    public User update(
+            @RequestBody @Validated({OnUpdate.class, Default.class}) User user
+    ) {
+        return userService.update(user);
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public User addFriend(
+            @PathVariable Long id,
+            @PathVariable Long friendId
+    ) {
+
+        CommonValidate.checkNotNullAndPositive(id, "Параметр id должен быть положительным");
+
+        CommonValidate.checkNotNullAndPositive(friendId, "Параметр friendId должен быть положительным");
+
+        return userService.addFriend(id, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public User deleteFriend(
+            @PathVariable Long id,
+            @PathVariable Long friendId
+    ) {
+
+        CommonValidate.checkNotNullAndPositive(id, "Параметр id должен быть положительным");
+
+        CommonValidate.checkNotNullAndPositive(friendId, "Параметр id должен быть положительным");
+
+        return userService.deleteFriend(id, friendId);
     }
 }

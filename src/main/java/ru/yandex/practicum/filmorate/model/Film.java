@@ -6,10 +6,12 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
-import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
 import ru.yandex.practicum.filmorate.util.validate.MinDateValidator;
+import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Builder
@@ -27,4 +29,14 @@ public class Film implements Identifiable {
     @NotNull(message = "duration не пришел")
     @Positive(message = "Продолжительность фильма должна быть больше 0")
     private Long duration;
+    private Set<Long> likes;
+
+    public Set<Long> getLikes() {
+
+        if (this.likes == null) {
+            return new HashSet<>();
+        }
+
+        return likes;
+    }
 }
