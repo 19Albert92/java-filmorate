@@ -56,17 +56,17 @@ public class GenderRepositoryTest {
     @Test
     public void should_return_genre_by_id() {
 
-        String expected_genre = "Комедия";
+        String expectedGenre = "Комедия";
 
         Optional<Genre> finedGenre = genreRepository.findById(1);
 
         AssertionsForClassTypes.assertThat(finedGenre)
                 .as("Жанр должен вернутся")
                 .isPresent()
-                .as("Жанр должен быть: %s", expected_genre)
+                .as("Жанр должен быть: %s", expectedGenre)
                 .get()
                 .satisfies(genre ->
-                        Assertions.assertThat(genre.getName()).isEqualTo(expected_genre)
+                        Assertions.assertThat(genre.getName()).isEqualTo(expectedGenre)
                 );
 
         finedGenre = genreRepository.findById(12);
