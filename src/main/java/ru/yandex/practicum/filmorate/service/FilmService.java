@@ -1,15 +1,22 @@
 package ru.yandex.practicum.filmorate.service;
 
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.CrudMethodsStorage;
+import ru.yandex.practicum.filmorate.dto.film.CreateFilmRequest;
+import ru.yandex.practicum.filmorate.dto.film.FilmDto;
+import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
 
 import java.util.Collection;
 
-public interface FilmService extends CrudMethodsStorage<Film, Long> {
+public interface FilmService {
 
-    Film addLike(Long id, Long userid);
+    FilmDto findById(Long id);
 
-    Film deleteLike(Long id, Long userid);
+    FilmDto create(CreateFilmRequest data);
 
-    Collection<Film> getPopularFilmByLikes(Integer count);
+    FilmDto update(UpdateFilmRequest data);
+
+    Collection<FilmDto> findAll();
+
+    boolean toggleLike(Long filmId, Long userid);
+
+    Collection<FilmDto> getPopularFilmByLikes(Integer count);
 }

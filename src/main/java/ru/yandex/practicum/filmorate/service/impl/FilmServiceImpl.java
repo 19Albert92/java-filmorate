@@ -1,103 +1,136 @@
 package ru.yandex.practicum.filmorate.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.filmorate.dto.film.CreateFilmRequest;
+import ru.yandex.practicum.filmorate.dto.film.FilmDto;
+import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.service.GenreService;
+import ru.yandex.practicum.filmorate.dal.FilmRepository;
+import ru.yandex.practicum.filmorate.dal.LikeRepository;
+import ru.yandex.practicum.filmorate.dal.MpaRepository;
+import ru.yandex.practicum.filmorate.dal.UserRepository;
 
 import java.util.Collection;
-import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class FilmServiceImpl implements FilmService {
 
-    private final FilmStorage filmStorage;
+    private final GenreService genreService;
 
-    private final UserStorage userStorage;
+    private final FilmRepository filmStorage;
 
-    public FilmServiceImpl(FilmStorage filmStorage, UserStorage userStorage) {
+    private final UserRepository userStorage;
+
+    private final MpaRepository mpaStorage;
+
+    private final LikeRepository likeStorage;
+
+    public FilmServiceImpl(GenreService genreService, FilmRepository filmStorage,
+                           UserRepository userStorage, MpaRepository mpaStorage, LikeRepository likeStorage) {
+        this.genreService = genreService;
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
+        this.mpaStorage = mpaStorage;
+        this.likeStorage = likeStorage;
     }
 
     @Override
-    public Film addLike(Long id, Long userid) {
+    @Transactional
+    public boolean toggleLike(Long filmId, Long userid) {
 
-        User findUser = userStorage.findById(userid);
+        userStorage.findById(userid)
+                .orElseThrow(() -> new NotFoundException("Пользователя с данным id нет"));
 
-        Film findFilm = filmStorage.findById(id);
+        filmStorage.findById(filmId)
+                .orElseThrow(() -> new NotFoundException("Фильм с данным id нет"));
 
-        if (!findFilm.getLikes().contains(userid)) {
+        boolean isExists = likeStorage.isLikeExists(filmId, userid);
 
-            Set<Long> likes = findFilm.getLikes();
-
-            likes.add(findUser.getId());
-
-            findFilm.setLikes(likes);
+        if (isExists) {
+            likeStorage.deleteLike(filmId, userid);
+        } else {
+            likeStorage.addLike(filmId, userid);
         }
 
-        return filmStorage.update(findFilm);
+        return true;
     }
 
     @Override
-    public Film deleteLike(Long id, Long userid) {
-
-        User findUser = userStorage.findById(userid);
-
-        Film findFilm = filmStorage.findById(id);
-
-        if (findFilm.getLikes().contains(userid)) {
-
-            Set<Long> likes = findFilm.getLikes();
-
-            likes.remove(findUser.getId());
-
-            findFilm.setLikes(likes);
-        }
-
-        return filmStorage.update(findFilm);
-    }
-
-    @Override
-    public Collection<Film> getPopularFilmByLikes(Integer count) {
-
-        Comparator<Film> comparatorSortByLikes =
-                Comparator.comparingInt(film -> film.getLikes().size());
-
-        return filmStorage.findAll().stream()
-                .sorted(comparatorSortByLikes.reversed())
-                .limit(count)
+    public Collection<FilmDto> getPopularFilmByLikes(Integer count) {
+        return filmStorage.getPopularFilmByLikes(count).stream()
+                .map(FilmMapper::mapToFilmDto)
                 .toList();
     }
 
     @Override
-    public Film findById(Long id) {
-        return filmStorage.findById(id);
+    public FilmDto findById(Long id) {
+        return filmStorage.findById(id)
+                .map(FilmMapper::mapToFilmDto)
+                .map(dto -> {
+                    dto.setGenres(genreService.getGenresByFilmId(dto.getId()));
+                    return dto;
+                })
+                .orElseThrow(() -> new NotFoundException("Фильм не найден"));
     }
 
     @Override
-    public Film create(Film data) {
-        return filmStorage.create(data);
+    @Transactional
+    public FilmDto create(CreateFilmRequest request) {
+
+        Film film = FilmMapper.mapToFilm(request);
+
+        Set<Integer> uniqGenres = new HashSet<>();
+
+        if (request.getGenres() != null && !request.getGenres().isEmpty()) {
+            uniqGenres = request.getGenres().stream()
+                    .map(Genre::getId)
+                    .filter(genre_id -> genreService.getById(genre_id) != null)
+                    .collect(Collectors.toSet());
+        }
+
+        if (request.getMpa() != null) {
+            mpaStorage.findById(request.getMpa().getId())
+                    .orElseThrow(() -> new NotFoundException("Такого рейтинга нет"));
+        }
+
+        film = filmStorage.create(film);
+
+        if (!uniqGenres.isEmpty()) {
+            genreService.saveGenres(film.getId(), uniqGenres);
+
+            film.setGenres(request.getGenres());
+        }
+
+        return FilmMapper.mapToFilmDto(film);
     }
 
     @Override
-    public Film update(Film data) {
+    public FilmDto update(UpdateFilmRequest request) {
 
-        Film findFilm = filmStorage.findById(data.getId());
+        Film film = filmStorage.findById(request.getId())
+                .map(f -> FilmMapper.mapToUpdateFields(f, request))
+                .orElseThrow(() -> new NotFoundException("Фильм не найден"));
 
-        findFilm.setName(data.getName());
-        findFilm.setDescription(data.getDescription());
-        findFilm.setDuration(data.getDuration());
-        findFilm.setReleaseDate(data.getReleaseDate());
+        film = filmStorage.update(film);
 
-        return filmStorage.update(findFilm);
+        return FilmMapper.mapToFilmDto(film);
     }
 
     @Override
-    public Collection<Film> findAll() {
-        return filmStorage.findAll();
+    public Collection<FilmDto> findAll() {
+        return filmStorage.findAll().stream()
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
     }
 }

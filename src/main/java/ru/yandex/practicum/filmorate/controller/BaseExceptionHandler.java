@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.yandex.practicum.filmorate.exception.NotFoundDateException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.NotValidParamException;
 import ru.yandex.practicum.filmorate.exception.ParamNullPointerException;
 import ru.yandex.practicum.filmorate.model.ErrorResponse;
@@ -49,6 +50,13 @@ public class BaseExceptionHandler {
 
     @ExceptionHandler(ParamNullPointerException.class)
     public ResponseEntity<ErrorResponse> handleParamNullPointerException(ParamNullPointerException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(e.getMessage(), Map.of()));
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleNotFound(final NotFoundException e) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse(e.getMessage(), Map.of()));
