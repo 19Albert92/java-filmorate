@@ -1,10 +1,11 @@
 package ru.yandex.practicum.filmorate.dal.repository;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -22,6 +23,7 @@ public class UserRepositoryImpl extends BaseRepository<User> implements UserRepo
     private static final String UPDATE_USER_QUERY =
             "UPDATE users SET email = ?, name = ?, birthday = ?, login = ? WHERE id = ?";
 
+    @Autowired
     public UserRepositoryImpl(JdbcTemplate jdbcTemplate, RowMapper<User> mapper) {
         super(jdbcTemplate, mapper);
     }

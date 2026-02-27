@@ -3,12 +3,14 @@ package ru.yandex.practicum.filmorate.dal.repository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.dal.LikeRepository;
 import ru.yandex.practicum.filmorate.model.Like;
 
 @Repository
-public class LikeRepositoryImpl extends BaseRepository<Like> implements ru.yandex.practicum.filmorate.dal.LikeRepository {
+public class LikeRepositoryImpl extends BaseRepository<Like> implements LikeRepository {
 
-    private static final String FIND_FILM_BY_ID_AND_USER_ID_QUERY = "SELECT * FROM film_likes WHERE film_id = ? AND user_id = ?";
+    private static final String FIND_FILM_BY_ID_AND_USER_ID_QUERY =
+            "SELECT * FROM film_likes WHERE film_id = ? AND user_id = ?";
 
     private static final String INSERT_LIKE_TO_FILM_QUERY = "INSERT INTO film_likes (film_id, user_id) VALUES (?, ?)";
 
@@ -26,7 +28,7 @@ public class LikeRepositoryImpl extends BaseRepository<Like> implements ru.yande
 
     @Override
     public void addLike(Long filmId, Long userid) {
-        insert(INSERT_LIKE_TO_FILM_QUERY, filmId, userid);
+        update(INSERT_LIKE_TO_FILM_QUERY, filmId, userid);
     }
 
     @Override

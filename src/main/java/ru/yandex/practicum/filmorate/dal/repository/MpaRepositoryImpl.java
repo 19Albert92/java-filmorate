@@ -13,9 +13,9 @@ import java.util.Optional;
 @Repository
 public class MpaRepositoryImpl extends BaseRepository<Mpa> implements ru.yandex.practicum.filmorate.dal.MpaRepository {
 
-    private static final String FIND_BY_ID_QUERY = "SELECT * FROM MPA WHERE ID = ?";
+    private static final String FIND_BY_ID_QUERY = "SELECT * FROM mpa WHERE id = ?";
 
-    private static final String FIND_All_QUERY = "SELECT * FROM MPA";
+    private static final String FIND_All_QUERY = "SELECT * FROM mpa";
 
     public MpaRepositoryImpl(JdbcTemplate jdbcTemplate, RowMapper<Mpa> mapper) {
         super(jdbcTemplate, mapper);

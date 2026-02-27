@@ -5,7 +5,6 @@ import ru.yandex.practicum.filmorate.dto.user.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.user.UserDto;
 
 import java.util.Collection;
-import java.util.List;
 
 public interface UserService {
 
@@ -17,9 +16,9 @@ public interface UserService {
 
     Collection<UserDto> findAll();
 
-    List<UserDto> addFriend(Long id, Long friendId);
+    boolean addFriend(Long id, Long friendId);
 
-    List<UserDto> deleteFriend(Long id, Long friendId);
+    boolean deleteFriend(Long id, Long friendId);
 
     Collection<UserDto> getAllFriends(Long id);
 

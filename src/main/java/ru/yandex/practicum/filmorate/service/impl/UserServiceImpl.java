@@ -1,17 +1,17 @@
 package ru.yandex.practicum.filmorate.service.impl;
 
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.FriendshipRepository;
+import ru.yandex.practicum.filmorate.dal.UserRepository;
 import ru.yandex.practicum.filmorate.dto.user.CreateUserRequest;
 import ru.yandex.practicum.filmorate.dto.user.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.user.UserDto;
+import ru.yandex.practicum.filmorate.exception.FriendShipException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.FriendStatus;
-import ru.yandex.practicum.filmorate.model.Friendship;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.dal.FriendshipRepository;
-import ru.yandex.practicum.filmorate.dal.UserRepository;
 
 import java.util.Collection;
 import java.util.List;
@@ -29,33 +29,27 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> addFriend(Long id, Long friendId) {
+    public boolean addFriend(Long id, Long friendId) {
 
         checkUsersExist(id, friendId);
 
-        friendshipStorage.addFriend(
-                new Friendship(id, friendId, FriendStatus.ACCEPTED)
-        );
+        if (friendshipStorage.checkFriendships(id, friendId)) {
+            throw new FriendShipException("Вы уже друзья");
+        }
 
-        List<User> friendsFromDb = friendshipStorage.getAllFriends(id);
-
-        return friendsFromDb.stream()
-                .map(UserMapper::mapToUserDto)
-                .toList();
+        return friendshipStorage.addFriend(id, friendId, FriendStatus.ACCEPTED);
     }
 
     @Override
-    public List<UserDto> deleteFriend(Long id, Long friendId) {
+    public boolean deleteFriend(Long id, Long friendId) {
 
         checkUsersExist(id, friendId);
 
-        friendshipStorage.removeFriend(new Friendship(id, friendId, FriendStatus.ACCEPTED));
+        if (friendshipStorage.checkFriendships(id, friendId)) {
+            friendshipStorage.removeFriend(id, friendId);
+        }
 
-        List<User> friendsFromDb = friendshipStorage.getAllFriends(id);
-
-        return friendsFromDb.stream()
-                .map(UserMapper::mapToUserDto)
-                .toList();
+        return true;
     }
 
     @Override

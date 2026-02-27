@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.dal.repository;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -13,7 +12,6 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Optional;
 
-@Slf4j
 @RequiredArgsConstructor
 public class BaseRepository<T> {
 
@@ -27,6 +25,16 @@ public class BaseRepository<T> {
 
     protected List<T> findMany(String query, Object... params) {
         return jdbcTemplate.query(query, mapper, params);
+    }
+
+    protected Integer findCount(String query, Object... params) {
+        try {
+
+            return jdbcTemplate.queryForObject(query, Integer.class, params);
+
+        } catch (EmptyResultDataAccessException exception) {
+            return 0;
+        }
     }
 
     protected Optional<T> findOne(String query, Object... params) {
@@ -64,30 +72,21 @@ public class BaseRepository<T> {
         }
     }
 
-    protected void insert(String query, Object... params) {
-        jdbcTemplate.update(connection -> {
-            PreparedStatement preparedStatement = connection
-                    .prepareStatement(query);
-
-            for (int i = 0; i < params.length; i++) {
-                preparedStatement.setObject(i + 1, params[i]);
-            }
-
-            return preparedStatement;
-        });
-    }
-
-    protected void update(String query, Object... params) {
+    protected boolean update(String query, Object... params) {
         int rowsUpdated = jdbcTemplate.update(query, params);
         if (rowsUpdated == 0) {
             throw new InternalServerException("Не удалось обновить данные");
         }
+
+        return rowsUpdated > 0;
     }
 
-    protected boolean batchUpdate(String query, List<Object[]> batchArgs) {
-
-        int[] resultInsertCount = jdbcTemplate.batchUpdate(query, batchArgs);
-
-        return resultInsertCount.length > 0;
+    protected void batchUpdate(String query, List<Object[]> batchArgs, int batchSize) {
+        jdbcTemplate.batchUpdate(query, batchArgs, batchSize,
+                (PreparedStatement ps, Object[] args) -> {
+                    for (int i = 0; i < args.length; i++) {
+                        ps.setObject(i + 1, args[i]);
+                    }
+                });
     }
 }

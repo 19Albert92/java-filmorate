@@ -3,18 +3,22 @@ package ru.yandex.practicum.filmorate.dal.repository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.model.Friendship;
+import ru.yandex.practicum.filmorate.dal.FriendshipRepository;
+import ru.yandex.practicum.filmorate.model.FriendStatus;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
 
 @Repository
-public class FriendshipRepositoryImpl extends BaseRepository<User> implements ru.yandex.practicum.filmorate.dal.FriendshipRepository {
+public class FriendshipRepositoryImpl extends BaseRepository<User> implements FriendshipRepository {
 
     private static final String FIND_ALL_FRIENDS_BY_USER_ID_QUERY = "SELECT u.* FROM users u JOIN friendship AS f ON u.id = f.friend_id WHERE f.user_id = ?";
 
     private static final String INSERT_ADD_FRIEND =
-            "INSERT INTO friendship(user_id, friend_id, status) VALUES (?, ?, ?)";
+            "INSERT INTO friendship (user_id, friend_id, status) VALUES (?, ?, ?)";
+
+    private static final String FIND_FRIENDSHIP =
+            "SELECT COUNT(*) FROM friendship WHERE user_id = ? AND friend_id = ?";
 
     private static final String REMOVE_FRIEND = "DELETE FROM friendship WHERE user_id = ? AND friend_id = ?";
 
@@ -31,22 +35,19 @@ public class FriendshipRepositoryImpl extends BaseRepository<User> implements ru
         super(jdbcTemplate, mapper);
     }
 
-    public void addFriend(Friendship friendship) {
-        insert(INSERT_ADD_FRIEND,
-                friendship.getUserId(),
-                friendship.getFriendId(),
-                friendship.getStatus().getValue()
-        );
-
+    @Override
+    public boolean addFriend(Long userId, Long friendId, FriendStatus status) {
+        return update(INSERT_ADD_FRIEND, userId,friendId,status.getValue());
     }
 
     @Override
-    public void removeFriend(Friendship friendship) {
-        insert(REMOVE_FRIEND,
-                friendship.getUserId(),
-                friendship.getFriendId()
-        );
+    public boolean checkFriendships(Long userId, Long friendId) {
+        return findCount(FIND_FRIENDSHIP, userId, friendId) > 0;
+    }
 
+    @Override
+    public void removeFriend(Long userId, Long friendId) {
+        update(REMOVE_FRIEND, userId, friendId);
     }
 
     @Override

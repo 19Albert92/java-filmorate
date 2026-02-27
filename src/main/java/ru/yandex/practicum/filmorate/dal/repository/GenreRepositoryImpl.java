@@ -31,7 +31,7 @@ public class GenreRepositoryImpl extends BaseRepository<Genre> implements ru.yan
 
     @Override
     public void save(List<Object[]> genres) {
-        batchUpdate(INSERT_GENRE, genres);
+        batchUpdate(INSERT_GENRE, genres, 10);
     }
 
     @Override
