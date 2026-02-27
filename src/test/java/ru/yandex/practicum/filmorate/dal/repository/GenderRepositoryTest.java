@@ -89,7 +89,7 @@ public class GenderRepositoryTest {
     @Test
     public void should_return_genre_by_film() {
 
-        String last_genre = "Триллер";
+        String lastGenre = "Триллер";
 
         Film film = films.getFirst();
 
@@ -100,7 +100,7 @@ public class GenderRepositoryTest {
                 .hasSize(3)
                 .last()
                 .satisfies(genre ->
-                        Assertions.assertThat(genre.getName()).isEqualTo(last_genre)
+                        Assertions.assertThat(genre.getName()).isEqualTo(lastGenre)
                 );
     }
 }
