@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.FriendshipRepository;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
@@ -16,6 +17,7 @@ import ru.yandex.practicum.filmorate.service.UserService;
 import java.util.Collection;
 import java.util.List;
 
+@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -31,11 +33,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean addFriend(Long id, Long friendId) {
 
-        checkUsersExist(id, friendId);
-
-        if (friendshipStorage.checkFriendships(id, friendId)) {
+        if (id.equals(friendId)) {
             throw new FriendShipException("Вы уже друзья");
         }
+
+        checkUsersExist(id, friendId);
 
         return friendshipStorage.addFriend(id, friendId, FriendStatus.ACCEPTED);
     }
@@ -43,11 +45,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean deleteFriend(Long id, Long friendId) {
 
+        if (id.equals(friendId)) {
+            throw new FriendShipException("Вы уже друзья");
+        }
+
         checkUsersExist(id, friendId);
 
-        if (friendshipStorage.checkFriendships(id, friendId)) {
-            friendshipStorage.removeFriend(id, friendId);
-        }
+        friendshipStorage.removeFriend(id, friendId);
 
         return true;
     }

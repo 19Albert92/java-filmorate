@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
+import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
@@ -49,13 +50,17 @@ public class UserRepositoryImpl extends BaseRepository<User> implements UserRepo
     @Override
     public User update(User data) {
 
-        update(UPDATE_USER_QUERY,
+        int resUpdateRows = update(UPDATE_USER_QUERY,
                 data.getEmail(),
                 data.getName(),
                 data.getBirthday(),
                 data.getLogin(),
                 data.getId()
         );
+
+        if (resUpdateRows == 0) {
+            throw new InternalServerException("Не удалось обновить данные");
+        }
 
         return data;
     }

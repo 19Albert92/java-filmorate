@@ -14,6 +14,4 @@ public interface FriendshipRepository {
     List<User> getAllFriends(Long userId);
 
     List<User> getCommonFriends(Long userId, Long otherId);
-
-    boolean checkFriendships(Long userId, Long friendId);
 }

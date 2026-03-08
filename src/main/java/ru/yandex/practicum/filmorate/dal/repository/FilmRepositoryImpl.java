@@ -1,16 +1,15 @@
 package ru.yandex.practicum.filmorate.dal.repository;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-@Slf4j
 @Repository
 public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yandex.practicum.filmorate.dal.FilmRepository {
 
@@ -72,7 +71,7 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
     @Override
     public Film update(Film data) {
 
-        update(UPDATE_FILM_QUERY,
+        int resUpdateRows = update(UPDATE_FILM_QUERY,
                 data.getName(),
                 data.getDescription(),
                 data.getReleaseDate(),
@@ -80,6 +79,10 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
                 data.getMpa().getId(),
                 data.getId()
         );
+
+        if (resUpdateRows == 0) {
+            throw new InternalServerException("Не удалось обновить данные");
+        }
 
         return data;
     }

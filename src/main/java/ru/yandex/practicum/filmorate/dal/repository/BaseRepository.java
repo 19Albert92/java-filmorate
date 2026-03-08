@@ -72,18 +72,13 @@ public class BaseRepository<T> {
         }
     }
 
-    protected boolean update(String query, Object... params) {
-        int rowsUpdated = jdbcTemplate.update(query, params);
-        if (rowsUpdated == 0) {
-            throw new InternalServerException("Не удалось обновить данные");
-        }
-
-        return rowsUpdated > 0;
+    protected Integer update(String query, Object... params) {
+        return jdbcTemplate.update(query, params);
     }
 
     protected void batchUpdate(String query, List<Object[]> batchArgs, int batchSize) {
         jdbcTemplate.batchUpdate(query, batchArgs, batchSize,
-                (PreparedStatement ps, Object[] args) -> {
+                (ps,  args) -> {
                     for (int i = 0; i < args.length; i++) {
                         ps.setObject(i + 1, args[i]);
                     }
