@@ -20,14 +20,14 @@ CREATE TABLE IF NOT EXISTS users(
                                     birthday date NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS genre(
+CREATE TABLE IF NOT EXISTS genres(
                                     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                                     name VARCHAR
 );
 
-CREATE TABLE IF NOT EXISTS film_genre(
+CREATE TABLE IF NOT EXISTS film_genres(
                                          film_id BIGINT REFERENCES films(id) ON DELETE CASCADE,
-                                         genre_id INTEGER REFERENCES genre(id),
+                                         genre_id INTEGER REFERENCES genres(id),
                                          PRIMARY KEY (film_id, genre_id)
 );
 

@@ -11,16 +11,16 @@ import java.util.Optional;
 @Repository
 public class GenreRepositoryImpl extends BaseRepository<Genre> implements ru.yandex.practicum.filmorate.dal.GenreRepository {
 
-    private static final String INSERT_GENRE = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)";
+    private static final String INSERT_GENRE = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
 
-    private static final String FIND_ALL_QUERY = "SELECT * FROM genre";
+    private static final String FIND_ALL_QUERY = "SELECT * FROM genres";
 
-    private static final String FIND_BY_ID_QUERY = "SELECT * FROM genre WHERE id = ?";
+    private static final String FIND_BY_ID_QUERY = "SELECT * FROM genres WHERE id = ?";
 
     private static final String FIND_BY_FILM_ID_QUERY = """
             SELECT g.id, g.name
-            FROM genre AS g
-            JOIN film_genre AS fg ON g.id = fg.genre_id
+            FROM genres AS g
+            JOIN film_genres AS fg ON g.id = fg.genre_id
             WHERE fg.film_id = ?
             GROUP BY g.id
             """;
