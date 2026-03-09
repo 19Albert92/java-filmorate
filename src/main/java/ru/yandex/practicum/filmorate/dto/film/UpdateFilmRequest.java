@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Data
 public class UpdateFilmRequest {
 
-    @NotNull(groups = OnUpdate.class, message = "id не пришел")
+    @NotNull(groups = OnUpdate.class, message = "Id не пришел или пришел пустым")
     private Long id;
     private String name;
     private String description;
