@@ -7,7 +7,6 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 
 @Component
 public class FilmRowMapper implements RowMapper<Film> {
@@ -24,7 +23,7 @@ public class FilmRowMapper implements RowMapper<Film> {
                 .name(result.getString("name"))
                 .description(result.getString("description"))
                 .duration(result.getLong(("duration")))
-                .releaseDate(LocalDate.parse(result.getString("release_date")))
+                .releaseDate(result.getDate("release_date").toLocalDate())
                 .mpa(mpa)
                 .build();
     }

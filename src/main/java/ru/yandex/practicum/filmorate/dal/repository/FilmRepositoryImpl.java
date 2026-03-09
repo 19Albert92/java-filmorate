@@ -17,7 +17,7 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             SELECT f.*, m.name AS mpa_name
             FROM films AS f
             LEFT JOIN mpa AS m ON f.mpa_id = m.id
-            GROUP BY f.id, m.name
+            GROUP BY f.id
             """;
 
     private static final String FIND_FILM_BY_ID_QUERY = """
@@ -25,7 +25,7 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             FROM films AS f
             LEFT JOIN mpa AS m ON f.mpa_id = m.id
             WHERE f.id = ?
-            GROUP BY f.id, m.name
+            GROUP BY f.id
             """;
 
     private static final String INSERT_FILM_QUERY =

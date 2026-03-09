@@ -70,6 +70,7 @@ public class FilmServiceImpl implements FilmService {
     public Collection<FilmDto> getPopularFilmByLikes(Integer count) {
         return filmStorage.getPopularFilmByLikes(count).stream()
                 .map(FilmMapper::mapToFilmDto)
+                .peek(film -> film.setGenres(genreService.getGenresByFilmId(film.getId())))
                 .toList();
     }
 
@@ -131,6 +132,7 @@ public class FilmServiceImpl implements FilmService {
     public Collection<FilmDto> findAll() {
         return filmStorage.findAll().stream()
                 .map(FilmMapper::mapToFilmDto)
+                .peek(dto -> dto.setGenres(genreService.getGenresByFilmId(dto.getId())))
                 .toList();
     }
 }

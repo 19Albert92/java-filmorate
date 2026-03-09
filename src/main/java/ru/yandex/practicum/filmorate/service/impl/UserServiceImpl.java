@@ -34,7 +34,7 @@ public class UserServiceImpl implements UserService {
     public boolean addFriend(Long id, Long friendId) {
 
         if (id.equals(friendId)) {
-            throw new FriendShipException("Вы уже друзья");
+            throw new FriendShipException("Вы не можете быть другом себе");
         }
 
         checkUsersExist(id, friendId);
@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
     public boolean deleteFriend(Long id, Long friendId) {
 
         if (id.equals(friendId)) {
-            throw new FriendShipException("Вы уже друзья");
+            throw new FriendShipException("Вы не можете быть другом себе");
         }
 
         checkUsersExist(id, friendId);

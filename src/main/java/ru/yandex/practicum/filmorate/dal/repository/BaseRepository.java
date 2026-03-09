@@ -27,16 +27,6 @@ public class BaseRepository<T> {
         return jdbcTemplate.query(query, mapper, params);
     }
 
-    protected Integer findCount(String query, Object... params) {
-        try {
-
-            return jdbcTemplate.queryForObject(query, Integer.class, params);
-
-        } catch (EmptyResultDataAccessException exception) {
-            return 0;
-        }
-    }
-
     protected Optional<T> findOne(String query, Object... params) {
         try {
 
