@@ -1,16 +1,20 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.groups.Default;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.dto.film.CreateFilmRequest;
+import ru.yandex.practicum.filmorate.dto.film.FilmDto;
+import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.util.validate.CommonValidate;
 import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
 
 import java.util.Collection;
 
+@Slf4j
 @RestController
 @RequestMapping("/films")
 public class FilmController {
@@ -22,12 +26,20 @@ public class FilmController {
     }
 
     @GetMapping
-    public Collection<Film> findAll() {
+    public Collection<FilmDto> findAll() {
         return filmService.findAll();
     }
 
+    @GetMapping("/{filmId}")
+    public FilmDto findFilmById(@PathVariable Long filmId) {
+
+        CommonValidate.checkNotNullAndPositive(filmId, "Параметр filmId должен быть положительным");
+
+        return filmService.findById(filmId);
+    }
+
     @GetMapping("/popular")
-    public Collection<Film> findPopularFilms(
+    public Collection<FilmDto> findPopularFilms(
             @RequestParam(defaultValue = "10") Integer count
     ) {
 
@@ -37,12 +49,13 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film create(@RequestBody @Valid Film film) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public FilmDto create(@RequestBody @Valid CreateFilmRequest film) {
         return filmService.create(film);
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public Film addLike(
+    public boolean addLike(
             @PathVariable Long id,
             @PathVariable Long userId
     ) {
@@ -51,16 +64,19 @@ public class FilmController {
 
         CommonValidate.checkNotNullAndPositive(userId, "Параметр userId должен быть положительным");
 
-        return filmService.addLike(id, userId);
+        return filmService.toggleLike(id, userId);
     }
 
     @PutMapping
-    public Film update(@RequestBody @Validated({OnUpdate.class, Default.class}) Film film) {
+    public FilmDto update(@RequestBody @Validated({OnUpdate.class}) UpdateFilmRequest film) {
+
+        CommonValidate.checkNotNullAndPositive(film.getId(), "Параметр id должен быть положительным");
+
         return filmService.update(film);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public Film deleteLike(
+    public boolean deleteLike(
             @PathVariable Long id,
             @PathVariable Long userId
     ) {
@@ -69,6 +85,6 @@ public class FilmController {
 
         CommonValidate.checkNotNullAndPositive(userId, "Параметр userId должен быть положительным");
 
-        return filmService.deleteLike(id, userId);
+        return filmService.toggleLike(id, userId);
     }
 }

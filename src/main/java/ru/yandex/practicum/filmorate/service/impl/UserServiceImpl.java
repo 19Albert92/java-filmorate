@@ -1,112 +1,125 @@
 package ru.yandex.practicum.filmorate.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.FriendshipRepository;
+import ru.yandex.practicum.filmorate.dal.UserRepository;
+import ru.yandex.practicum.filmorate.dto.user.CreateUserRequest;
+import ru.yandex.practicum.filmorate.dto.user.UpdateUserRequest;
+import ru.yandex.practicum.filmorate.dto.user.UserDto;
+import ru.yandex.practicum.filmorate.exception.FriendShipException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.model.FriendStatus;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 
+@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
 
-    private final UserStorage userStorage;
+    private final UserRepository userStorage;
 
-    public UserServiceImpl(UserStorage userStorage) {
+    private final FriendshipRepository friendshipStorage;
+
+    public UserServiceImpl(UserRepository userStorage, FriendshipRepository friendshipStorage) {
         this.userStorage = userStorage;
+        this.friendshipStorage = friendshipStorage;
     }
 
     @Override
-    public User addFriend(Long id, Long friendId) {
+    public boolean addFriend(Long id, Long friendId) {
 
-        User findUser = userStorage.findById(id);
+        if (id.equals(friendId)) {
+            throw new FriendShipException("Вы не можете быть другом себе");
+        }
 
-        User findFriendUser = userStorage.findById(friendId);
+        checkUsersExist(id, friendId);
 
-        findUser.addFriend(friendId);
-
-        findFriendUser.addFriend(id);
-
-        return userStorage.update(findUser);
+        return friendshipStorage.addFriend(id, friendId, FriendStatus.ACCEPTED);
     }
 
     @Override
-    public User deleteFriend(Long id, Long friendId) {
+    public boolean deleteFriend(Long id, Long friendId) {
 
-        User findUser = userStorage.findById(id);
+        if (id.equals(friendId)) {
+            throw new FriendShipException("Вы не можете быть другом себе");
+        }
 
-        User findFriendUser = userStorage.findById(friendId);
+        checkUsersExist(id, friendId);
 
-        findUser.deleteFriend(friendId);
+        friendshipStorage.removeFriend(id, friendId);
 
-        findFriendUser.deleteFriend(id);
-
-        return userStorage.update(findUser);
+        return true;
     }
 
     @Override
-    public Collection<User> getAllFriends(Long id) {
+    public Collection<UserDto> getAllFriends(Long id) {
 
-        User findUser = userStorage.findById(id);
+        checkUsersExist(id);
 
-        return findUser.getFriends()
-                .stream()
-                .map(userStorage::findById)
+        List<User> friendsFromDb = friendshipStorage.getAllFriends(id);
+
+        return friendsFromDb.stream()
+                .map(UserMapper::mapToUserDto)
                 .toList();
     }
 
     @Override
-    public Collection<User> getAllCommonFriends(Long id, Long otherId) {
+    public Collection<UserDto> getAllCommonFriends(Long id, Long otherId) {
 
-        User findUser = userStorage.findById(id);
+        checkUsersExist(id, otherId);
 
-        User findOtherUser = userStorage.findById(otherId);
+        List<User> friendsFromDb = friendshipStorage.getCommonFriends(id, otherId);
 
-        Set<Long> userFriends = findUser.getFriends();
-
-        return findOtherUser.getFriends()
-                .stream()
-                .filter(userFriends::contains)
-                .map(userStorage::findById)
+        return friendsFromDb.stream()
+                .map(UserMapper::mapToUserDto)
                 .toList();
     }
 
     @Override
-    public User findById(Long id) {
-        return userStorage.findById(id);
+    public UserDto findById(Long id) {
+        return userStorage.findById(id)
+                .map(UserMapper::mapToUserDto)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
     }
 
     @Override
-    public User create(User data) {
+    public UserDto create(CreateUserRequest request) {
 
-        if (data.getName() == null || data.getName().isBlank()) {
-            data.setName(data.getLogin());
+        User user = UserMapper.mapToUser(request);
+
+        user = userStorage.create(user);
+
+        return UserMapper.mapToUserDto(user);
+    }
+
+    @Override
+    public UserDto update(UpdateUserRequest request) {
+
+        User user = userStorage.findById(request.getId())
+                .map(u -> UserMapper.mapToUpdateFields(u, request))
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+
+        user = userStorage.update(user);
+
+        return UserMapper.mapToUserDto(user);
+    }
+
+    @Override
+    public Collection<UserDto> findAll() {
+        return userStorage.findAll().stream()
+                .map(UserMapper::mapToUserDto)
+                .toList();
+    }
+
+    private void checkUsersExist(Long... users) {
+        for (Long id : users) {
+            userStorage.findById(id)
+                    .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         }
-
-        return userStorage.create(data);
-    }
-
-    @Override
-    public User update(User data) {
-
-        User findUser = userStorage.findById(data.getId());
-
-        findUser.setEmail(data.getEmail());
-        findUser.setLogin(data.getLogin());
-        findUser.setBirthday(data.getBirthday());
-
-        if ((data.getName() == null || !data.getName().isBlank()) && findUser.getName().equals(findUser.getLogin())) {
-            findUser.setName(data.getLogin());
-        } else {
-            findUser.setName(data.getName());
-        }
-
-        return userStorage.update(findUser);
-    }
-
-    @Override
-    public Collection<User> findAll() {
-        return userStorage.findAll();
     }
 }

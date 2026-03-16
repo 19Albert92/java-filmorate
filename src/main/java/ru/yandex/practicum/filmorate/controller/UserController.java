@@ -1,10 +1,12 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.groups.Default;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.dto.user.CreateUserRequest;
+import ru.yandex.practicum.filmorate.dto.user.UpdateUserRequest;
+import ru.yandex.practicum.filmorate.dto.user.UserDto;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.util.validate.CommonValidate;
 import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
@@ -22,12 +24,12 @@ public class UserController {
     }
 
     @GetMapping
-    public Collection<User> findAll() {
+    public Collection<UserDto> findAll() {
         return userService.findAll();
     }
 
     @GetMapping("/{id}")
-    public User findById(
+    public UserDto findById(
             @PathVariable Long id
     ) {
 
@@ -37,7 +39,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends")
-    public Collection<User> getFiendsByUser(
+    public Collection<UserDto> getFiendsByUser(
             @PathVariable Long id
     ) {
 
@@ -47,7 +49,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public Collection<User> getCommonFriends(
+    public Collection<UserDto> getCommonFriends(
             @PathVariable Long id,
             @PathVariable Long otherId
     ) {
@@ -59,19 +61,20 @@ public class UserController {
     }
 
     @PostMapping
-    public User create(@RequestBody @Valid User user) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserDto create(@RequestBody @Valid CreateUserRequest user) {
         return userService.create(user);
     }
 
     @PutMapping
-    public User update(
-            @RequestBody @Validated({OnUpdate.class, Default.class}) User user
+    public UserDto update(
+            @RequestBody @Validated({OnUpdate.class}) UpdateUserRequest user
     ) {
         return userService.update(user);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
-    public User addFriend(
+    public boolean addFriend(
             @PathVariable Long id,
             @PathVariable Long friendId
     ) {
@@ -84,7 +87,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public User deleteFriend(
+    public boolean deleteFriend(
             @PathVariable Long id,
             @PathVariable Long friendId
     ) {
