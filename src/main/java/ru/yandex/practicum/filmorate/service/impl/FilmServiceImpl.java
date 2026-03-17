@@ -75,6 +75,20 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
+    public Collection<FilmDto> getCommonFilms(Long userId, Long friendId) {
+        userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователя с данным id нет"));
+
+        userStorage.findById(friendId)
+                .orElseThrow(() -> new NotFoundException("Пользователя с данным id нет"));
+
+        return filmStorage.getCommonFilms(userId, friendId).stream()
+                .map(FilmMapper::mapToFilmDto)
+                .peek(film -> film.setGenres(genreService.getGenresByFilmId(film.getId())))
+                .toList();
+    }
+
+    @Override
     public FilmDto findById(Long id) {
         return filmStorage.findById(id)
                 .map(FilmMapper::mapToFilmDto)
