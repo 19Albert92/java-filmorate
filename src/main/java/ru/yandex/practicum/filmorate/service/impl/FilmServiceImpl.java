@@ -7,9 +7,11 @@ import ru.yandex.practicum.filmorate.dto.film.CreateFilmRequest;
 import ru.yandex.practicum.filmorate.dto.film.FilmDto;
 import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.SearchBy;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.dal.FilmRepository;
@@ -19,6 +21,7 @@ import ru.yandex.practicum.filmorate.dal.UserRepository;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -72,6 +75,35 @@ public class FilmServiceImpl implements FilmService {
                 .map(FilmMapper::mapToFilmDto)
                 .peek(film -> film.setGenres(genreService.getGenresByFilmId(film.getId())))
                 .toList();
+    }
+
+    @Override
+    public Collection<FilmDto> getFilteredFilms(String query, List<SearchBy> by) {
+        if (query == null || query.isBlank()) {
+            return filmStorage.getPopularFilmByLikes().stream()
+                    .map(FilmMapper::mapToFilmDto)
+                    .peek(film -> film.setGenres(genreService.getGenresByFilmId(film.getId())))
+                    .toList();
+        }
+
+        if (by == null || by.isEmpty()) {
+            throw new ValidationException("Параметр by обязателен при поиске");
+        }
+
+        boolean doesTitleExist = by.contains(SearchBy.title);
+
+        List<String> byParams = by.stream()
+                .map(Enum::name)
+                .toList();
+
+        if (doesTitleExist) {
+            return filmStorage.getFilteredFilms(query, byParams).stream()
+                    .map(FilmMapper::mapToFilmDto)
+                    .peek(film -> film.setGenres(genreService.getGenresByFilmId(film.getId())))
+                    .toList();
+        } else {
+            throw new NotFoundException("Параметр не найден");
+        }
     }
 
     @Override

@@ -42,6 +42,25 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             LIMIT ?
             """;
 
+    private static final String FIND_POPULAR_FILMS_QUERY = """
+            SELECT f.*, m.name AS mpa_name
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            LEFT JOIN film_likes AS fl ON f.id = fl.film_id
+            GROUP BY f.id, m.name
+            ORDER BY COUNT(fl.user_id) DESC
+            """;
+
+    private static final String FIND_FILTERED_FILMS_QUERY = """
+            SELECT f.*, m.name AS mpa_name
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            LEFT JOIN film_likes AS fl ON f.id = fl.film_id
+            WHERE f.name ILIKE ?
+            GROUP BY f.id, m.name
+            ORDER BY COUNT(fl.user_id) DESC
+            """;
+
     public FilmRepositoryImpl(JdbcTemplate jdbcTemplate, RowMapper<Film> mapper) {
         super(jdbcTemplate, mapper);
     }
@@ -93,5 +112,16 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
     @Override
     public List<Film> getPopularFilmByLikes(Integer limit) {
         return findMany(FIND_POPULAR_FILMS_BY_LIMIT_QUERY, limit);
+    }
+
+    @Override
+    public List<Film> getPopularFilmByLikes() {
+        return findMany(FIND_POPULAR_FILMS_QUERY);
+    }
+
+    @Override
+    public List<Film> getFilteredFilms(String query, List<String> by) {
+        String queryParam = "%" + query + "%";
+        return findMany(FIND_FILTERED_FILMS_QUERY, queryParam);
     }
 }

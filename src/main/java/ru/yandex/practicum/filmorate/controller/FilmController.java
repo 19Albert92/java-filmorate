@@ -8,11 +8,13 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.film.CreateFilmRequest;
 import ru.yandex.practicum.filmorate.dto.film.FilmDto;
 import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
+import ru.yandex.practicum.filmorate.model.SearchBy;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.util.validate.CommonValidate;
 import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
 
 import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -86,5 +88,14 @@ public class FilmController {
         CommonValidate.checkNotNullAndPositive(userId, "Параметр userId должен быть положительным");
 
         return filmService.toggleLike(id, userId);
+    }
+
+    @GetMapping("/search")
+    public Collection<FilmDto> findFilteredFilms(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) List<SearchBy> by
+    ) {
+
+        return filmService.getFilteredFilms(query, by);
     }
 }
