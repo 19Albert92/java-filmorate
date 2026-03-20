@@ -1,10 +1,10 @@
 package ru.yandex.practicum.filmorate.service.impl;
 
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.GenreRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.GenreService;
-import ru.yandex.practicum.filmorate.dal.GenreRepository;
 
 import java.util.List;
 import java.util.Set;
