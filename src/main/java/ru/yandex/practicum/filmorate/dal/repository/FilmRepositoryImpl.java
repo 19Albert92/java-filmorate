@@ -48,31 +48,36 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
         - не равными "null";
         - не в составе фильмов "?";
         - лимит 15 (много не нужно)
-*/
+    */
     private static final String FIND_FILM_RECOMMENDATIONS_QUERY = """
-            SELECT DISTINCT film_id
-            FROM film_likes
-            WHERE user_id in (
-                SELECT user_id
+            SELECT f.*, m.name AS mpa_name
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            WHERE f.id in (
+                SELECT DISTINCT film_id
                 FROM film_likes
-                WHERE film_id IN (
-                    SELECT film_id
+                WHERE user_id in (
+                    SELECT user_id
                     FROM film_likes
-                    WHERE user_id = ?
+                    WHERE film_id IN (
+                        SELECT film_id
+                        FROM film_likes
+                        WHERE user_id = 1
+                    )
+                    AND user_id IS NOT NULL
+                    AND user_id <> 1
+                    GROUP BY user_id
+                    ORDER BY count(film_id)
+                    DESC limit 10
                 )
-                AND user_id IS NOT NULL
-                AND user_id <> ?
-                GROUP BY user_id
-                ORDER BY count(film_id)
-                DESC limit 10
+                AND film_id is not null
+                AND film_id NOT IN (
+                    select film_id
+                    from film_likes
+                    where user_id = 1
+                )
+                LIMIT 15
             )
-            AND film_id is not null
-            AND film_id NOT IN (
-                select film_id
-                from film_likes
-                where user_id = ?
-            )
-            LIMIT 15
             """;
 
     public FilmRepositoryImpl(JdbcTemplate jdbcTemplate, RowMapper<Film> mapper) {
