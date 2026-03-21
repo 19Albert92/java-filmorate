@@ -62,10 +62,10 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
                     WHERE film_id IN (
                         SELECT film_id
                         FROM film_likes
-                        WHERE user_id = 1
+                        WHERE user_id = ?
                     )
                     AND user_id IS NOT NULL
-                    AND user_id <> 1
+                    AND user_id <> ?
                     GROUP BY user_id
                     ORDER BY count(film_id)
                     DESC limit 10
@@ -74,7 +74,7 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
                 AND film_id NOT IN (
                     select film_id
                     from film_likes
-                    where user_id = 1
+                    where user_id = ?
                 )
                 LIMIT 15
             )
