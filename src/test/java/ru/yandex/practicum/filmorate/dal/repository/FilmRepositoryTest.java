@@ -9,12 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import ru.yandex.practicum.filmorate.dal.DirectorRepository;
 import ru.yandex.practicum.filmorate.dal.FilmRepository;
 import ru.yandex.practicum.filmorate.dal.LikeRepository;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
+import ru.yandex.practicum.filmorate.dal.mapper.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.dal.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.dal.mapper.LikeRowMapper;
 import ru.yandex.practicum.filmorate.dal.mapper.UserRowMapper;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Like;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -23,14 +26,15 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 @JdbcTest
 @AutoConfigureTestDatabase
 @Import({FilmRepositoryImpl.class, FilmRowMapper.class, LikeRepositoryImpl.class, LikeRowMapper.class,
-        UserRepositoryImpl.class, UserRowMapper.class})
-@RequiredArgsConstructor(onConstructor_ =  @Autowired)
+        UserRepositoryImpl.class, UserRowMapper.class, DirectorRepositoryImpl.class, DirectorRowMapper.class})
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class FilmRepositoryTest {
 
     private final FilmRepository filmRepository;
@@ -39,9 +43,13 @@ public class FilmRepositoryTest {
 
     private final UserRepository userRepository;
 
+    private final DirectorRepository directorRepository;
+
     private final List<Film> films = new ArrayList<>();
 
     private User user;
+
+    private Director director;
 
     @BeforeEach
     public void setUp() {
@@ -140,5 +148,123 @@ public class FilmRepositoryTest {
                 .as("Первый должен быть с наибольшим лайком")
                 .hasFieldOrPropertyWithValue("id", expectedPopularFilm.getId())
                 .hasFieldOrPropertyWithValue("name", expectedPopularFilm.getName());
+    }
+
+    @Test
+    public void should_return_sorted_by_likes_films_by_director() {
+        director = Director.builder()
+                .name("TestName")
+                .build();
+
+        director = directorRepository.create(director);
+
+        Long directorId = director.getId();
+
+        Mpa mpa = Mpa.builder().id(1).build();
+
+        Film firstFilm = Film.builder()
+                .name("First Film")
+                .description("description")
+                .releaseDate(LocalDate.of(2000, 4, 1))
+                .duration(120L)
+                .mpa(mpa)
+                .build();
+
+        Film secondFilm = Film.builder()
+                .name("Second Film")
+                .description("description")
+                .releaseDate(LocalDate.of(1990, 4, 1))
+                .duration(120L)
+                .mpa(mpa)
+                .build();
+
+        Film thirdFilm = Film.builder()
+                .name("Third Film")
+                .description("description")
+                .releaseDate(LocalDate.of(2005, 4, 1))
+                .duration(120L)
+                .mpa(mpa)
+                .build();
+
+        List<Film> newFilms = List.of(firstFilm, secondFilm, thirdFilm);
+
+        newFilms.forEach(film -> filmRepository.create(film));
+
+        newFilms.forEach(film -> directorRepository.save(Collections.singletonList(new Object[]{film.getId(), directorId})));
+
+        newFilms.forEach(film -> film.setDirectors(List.of(director)));
+
+        Like like = Like.builder()
+                .userId(user.getId())
+                .filmId(secondFilm.getId())
+                .build();
+
+        likeRepository.addLike(like.getFilmId(), like.getUserId());
+
+        List<Film> foundFilms = filmRepository.getFilmsByDirectorId(directorId, "likes");
+
+        Assertions.assertThat(foundFilms)
+                .isNotNull()
+                .as("Количество фильмов должно быть %d", 3)
+                .hasSize(3)
+                .first()
+                .as("Первый фильм должен быть с наибольшим количеством лайков")
+                .hasFieldOrPropertyWithValue("id", secondFilm.getId())
+                .hasFieldOrPropertyWithValue("name", secondFilm.getName());
+    }
+
+    @Test
+    public void should_return_sorted_by_year_films_by_director() {
+        director = Director.builder()
+                .name("TestName")
+                .build();
+
+        director = directorRepository.create(director);
+
+        Long directorId = director.getId();
+
+        Mpa mpa = Mpa.builder().id(1).build();
+
+        Film firstFilm = Film.builder()
+                .name("First Film")
+                .description("description")
+                .releaseDate(LocalDate.of(2000, 4, 1))
+                .duration(120L)
+                .mpa(mpa)
+                .build();
+
+        Film secondFilm = Film.builder()
+                .name("Second Film")
+                .description("description")
+                .releaseDate(LocalDate.of(1990, 4, 1))
+                .duration(120L)
+                .mpa(mpa)
+                .build();
+
+        Film thirdFilm = Film.builder()
+                .name("Third Film")
+                .description("description")
+                .releaseDate(LocalDate.of(2005, 4, 1))
+                .duration(120L)
+                .mpa(mpa)
+                .build();
+
+        List<Film> newFilms = List.of(firstFilm, secondFilm, thirdFilm);
+
+        newFilms.forEach(film -> filmRepository.create(film));
+
+        newFilms.forEach(film -> directorRepository.save(Collections.singletonList(new Object[]{film.getId(), directorId})));
+
+        newFilms.forEach(film -> film.setDirectors(List.of(director)));
+
+        List<Film> foundFilms = filmRepository.getFilmsByDirectorId(directorId, "year");
+
+        Assertions.assertThat(foundFilms)
+                .isNotNull()
+                .as("Количество фильмов должно быть %d", 3)
+                .hasSize(3)
+                .as("Фильмы должны быть отсортированы по возрастанию года")
+                .extracting(Film::getReleaseDate)
+                .isSorted();
     }
 }
