@@ -19,4 +19,6 @@ public interface FilmService {
     boolean toggleLike(Long filmId, Long userid);
 
     Collection<FilmDto> getPopularFilmByLikes(Integer count);
+
+    Collection<FilmDto> getRecommendations(Long id);
 }

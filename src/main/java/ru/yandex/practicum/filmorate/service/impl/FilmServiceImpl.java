@@ -135,4 +135,12 @@ public class FilmServiceImpl implements FilmService {
                 .peek(dto -> dto.setGenres(genreService.getGenresByFilmId(dto.getId())))
                 .toList();
     }
+
+    @Override
+    public Collection<FilmDto> getRecommendations(Long id) {
+        return filmStorage.getRecommendations(id).stream()
+                .map(FilmMapper::mapToFilmDto)
+                .peek(dto -> dto.setGenres(genreService.getGenresByFilmId(dto.getId())))
+                .toList();
+    }
 }

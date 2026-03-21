@@ -4,9 +4,11 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.film.FilmDto;
 import ru.yandex.practicum.filmorate.dto.user.CreateUserRequest;
 import ru.yandex.practicum.filmorate.dto.user.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.user.UserDto;
+import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.util.validate.CommonValidate;
 import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
@@ -18,9 +20,11 @@ import java.util.Collection;
 public class UserController {
 
     private final UserService userService;
+    private final FilmService filmService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, FilmService filmService) {
         this.userService = userService;
+        this.filmService = filmService;
     }
 
     @GetMapping
@@ -97,5 +101,15 @@ public class UserController {
         CommonValidate.checkNotNullAndPositive(friendId, "Параметр id должен быть положительным");
 
         return userService.deleteFriend(id, friendId);
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public Collection<FilmDto> getRecommendations(
+            @PathVariable Long id
+    ) {
+
+        CommonValidate.checkNotNullAndPositive(id, "Параметр id должен быть положительным");
+
+        return filmService.getRecommendations(id);
     }
 }
