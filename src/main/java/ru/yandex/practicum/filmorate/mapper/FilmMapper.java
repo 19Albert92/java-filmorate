@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.dto.film.CreateFilmRequest;
 import ru.yandex.practicum.filmorate.dto.film.FilmDto;
 import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
@@ -30,6 +31,14 @@ public class FilmMapper {
         }
 
         filmDto.setGenres(genres);
+
+        List<Director> directors = new ArrayList<>();
+
+        if (film.getDirectors() != null) {
+            directors = film.getDirectors();
+        }
+
+        filmDto.setDirectors(directors);
 
         return filmDto;
     }
@@ -61,7 +70,6 @@ public class FilmMapper {
         if (request.hasReleaseDate()) {
             film.setReleaseDate(request.getReleaseDate());
         }
-
 
         return film;
     }
