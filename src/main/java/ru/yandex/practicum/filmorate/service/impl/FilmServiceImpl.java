@@ -7,13 +7,17 @@ import ru.yandex.practicum.filmorate.dal.FilmRepository;
 import ru.yandex.practicum.filmorate.dal.LikeRepository;
 import ru.yandex.practicum.filmorate.dal.MpaRepository;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
+import ru.yandex.practicum.filmorate.dto.feed.FeedDto;
 import ru.yandex.practicum.filmorate.dto.film.CreateFilmRequest;
 import ru.yandex.practicum.filmorate.dto.film.FilmDto;
 import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.OperationType;
+import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.GenreService;
 
@@ -30,16 +34,19 @@ public class FilmServiceImpl implements FilmService {
 
     private final FilmRepository filmStorage;
 
+    private final FeedService feedService;
+
     private final UserRepository userStorage;
 
     private final MpaRepository mpaStorage;
 
     private final LikeRepository likeStorage;
 
-    public FilmServiceImpl(GenreService genreService, FilmRepository filmStorage,
+    public FilmServiceImpl(GenreService genreService, FilmRepository filmStorage, FeedService feedService,
                            UserRepository userStorage, MpaRepository mpaStorage, LikeRepository likeStorage) {
         this.genreService = genreService;
         this.filmStorage = filmStorage;
+        this.feedService = feedService;
         this.userStorage = userStorage;
         this.mpaStorage = mpaStorage;
         this.likeStorage = likeStorage;
@@ -57,11 +64,20 @@ public class FilmServiceImpl implements FilmService {
 
         boolean isExists = likeStorage.isLikeExists(filmId, userid);
 
+        FeedDto feedDto = new FeedDto();
+        feedDto.setEventType(EventType.LIKE);
+        feedDto.setEntityId(filmId);
+        feedDto.setUserId(userid);
+
         if (isExists) {
             likeStorage.deleteLike(filmId, userid);
+            feedDto.setOperation(OperationType.REMOVE);
         } else {
             likeStorage.addLike(filmId, userid);
+            feedDto.setOperation(OperationType.ADD);
         }
+
+        feedService.addFeed(feedDto);
 
         return true;
     }
@@ -136,3 +152,5 @@ public class FilmServiceImpl implements FilmService {
                 .toList();
     }
 }
+
+

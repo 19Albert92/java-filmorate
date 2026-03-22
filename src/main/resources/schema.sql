@@ -59,3 +59,12 @@ CREATE TABLE IF NOT EXISTS review_votes(
                                            vote_type BOOLEAN NOT NULL,
                                            PRIMARY KEY(review_id, user_id)
 );
+
+CREATE TABLE IF NOT EXISTS feeds(
+                                    event_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                                    user_id BIGINT REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+                                    timestamp BIGINT NOT NULL,
+                                    event_type VARCHAR(50) NOT NULL,
+                                    operation VARCHAR(50) NOT NULL,
+                                    entity_id BIGINT NOT NULL
+);
