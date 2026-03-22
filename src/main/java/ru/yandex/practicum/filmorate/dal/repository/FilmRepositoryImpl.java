@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
 import java.util.List;
@@ -80,6 +81,12 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             )
             """;
 
+    private static final String FIND_LIKES_FROM_USER_QUERY = """
+            SELECT film_id
+            FROM film_likes
+            WHERE user_id = ?
+            """;
+
     public FilmRepositoryImpl(JdbcTemplate jdbcTemplate, RowMapper<Film> mapper) {
         super(jdbcTemplate, mapper);
     }
@@ -136,5 +143,10 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
     @Override
     public List<Film> getRecommendations(Long userId) {
         return findMany(FIND_FILM_RECOMMENDATIONS_QUERY, userId);
+    }
+
+    @Override
+    public List<Film> getLikes(Long userId) {
+        return findMany(FIND_LIKES_FROM_USER_QUERY, userId);
     }
 }

@@ -18,6 +18,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.GenreService;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -138,6 +139,10 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Collection<FilmDto> getRecommendations(Long id) {
+        if (filmStorage.getLikes(id).isEmpty() || userStorage.getUsersWithSameLikes(id).isEmpty()) {
+            return Collections.emptyList();
+        }
+
         return filmStorage.getRecommendations(id).stream()
                 .map(FilmMapper::mapToFilmDto)
                 .peek(dto -> dto.setGenres(genreService.getGenresByFilmId(dto.getId())))
