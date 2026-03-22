@@ -90,20 +90,26 @@ public class FilmServiceImpl implements FilmService {
             throw new ValidationException("Параметр by обязателен при поиске");
         }
 
-        boolean doesTitleExist = by.contains(SearchBy.title);
-
         List<String> byParams = by.stream()
                 .map(Enum::name)
                 .toList();
 
-        if (doesTitleExist) {
-            return filmStorage.getFilteredFilms(query, byParams).stream()
-                    .map(FilmMapper::mapToFilmDto)
-                    .peek(film -> film.setGenres(genreService.getGenresByFilmId(film.getId())))
-                    .toList();
+        List<Film> filteredFilms;
+
+        if (byParams.contains(SearchBy.title) && byParams.contains(SearchBy.director)) {
+            filteredFilms = filmStorage.getFilteredByTitleAndDirectorFilms(query);
+        } else if (byParams.contains(SearchBy.title)) {
+            filteredFilms = filmStorage.getFilteredByTitleFilms(query);
+        } else if (byParams.contains(SearchBy.director)) {
+            filteredFilms = filmStorage.getFilteredByDirectorFilms(query);
         } else {
             throw new NotFoundException("Параметр не найден");
         }
+
+        return filteredFilms.stream()
+                .map(FilmMapper::mapToFilmDto)
+                .peek(film -> film.setGenres(genreService.getGenresByFilmId(film.getId())))
+                .toList();
     }
 
     @Override

@@ -51,14 +51,31 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             ORDER BY COUNT(fl.user_id) DESC
             """;
 
-    private static final String FIND_FILTERED_FILMS_QUERY = """
+    private static final String FIND_FILTERED_BY_TITLE_AND_DIRECTOR_FILMS_QUERY = """
+            SELECT f.*, m.name AS mpa_name, d.name AS director_name
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            JOIN films_directors AS fd ON f.id = fd.film_id
+            JOIN directors AS d ON fd.director_id = d.id
+            WHERE f.name ILIKE ?
+            AND d.name ILIKE ?
+            """;
+
+    private static final String FIND_FILTERED_BY_TITLE_FILMS_QUERY = """
             SELECT f.*, m.name AS mpa_name
             FROM films AS f
             LEFT JOIN mpa AS m ON f.mpa_id = m.id
-            LEFT JOIN film_likes AS fl ON f.id = fl.film_id
+            JOIN films_directors AS fd ON f.id = fd.film_id
             WHERE f.name ILIKE ?
-            GROUP BY f.id, m.name
-            ORDER BY COUNT(fl.user_id) DESC
+            """;
+
+    private static final String FIND_FILTERED_BY_DIRECTOR_FILMS_QUERY = """
+            SELECT f.*, m.name AS mpa_name, d.name AS director_name
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            JOIN films_directors AS fd ON f.id = fd.film_id
+            JOIN directors AS d ON fd.director_id = d.id
+            AND d.name ILIKE ?
             """;
 
     public FilmRepositoryImpl(JdbcTemplate jdbcTemplate, RowMapper<Film> mapper) {
@@ -120,8 +137,20 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
     }
 
     @Override
-    public List<Film> getFilteredFilms(String query, List<String> by) {
+    public List<Film> getFilteredByTitleAndDirectorFilms(String query) {
         String queryParam = "%" + query + "%";
-        return findMany(FIND_FILTERED_FILMS_QUERY, queryParam);
+        return findMany(FIND_FILTERED_BY_TITLE_AND_DIRECTOR_FILMS_QUERY, queryParam);
+    }
+
+    @Override
+    public List<Film> getFilteredByTitleFilms(String query) {
+        String queryParam = "%" + query + "%";
+        return findMany(FIND_FILTERED_BY_TITLE_FILMS_QUERY, queryParam);
+    }
+
+    @Override
+    public List<Film> getFilteredByDirectorFilms(String query) {
+        String queryParam = "%" + query + "%";
+        return findMany(FIND_FILTERED_BY_DIRECTOR_FILMS_QUERY, queryParam);
     }
 }
