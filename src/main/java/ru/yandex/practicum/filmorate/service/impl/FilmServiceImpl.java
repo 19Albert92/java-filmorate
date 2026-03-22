@@ -23,6 +23,7 @@ import ru.yandex.practicum.filmorate.service.GenreService;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -193,7 +194,16 @@ public class FilmServiceImpl implements FilmService {
     @Override
     public Collection<FilmDto> getFilmsByDirectorId(Long id, SortBy sortBy) {
         String query = (sortBy != null) ? sortBy.name() : SortBy.defaultSort.name();
-        return filmStorage.getFilmsByDirectorId(id, query).stream()
+
+        List<Film> returnedFilms;
+
+        switch (query) {
+            case "year" -> returnedFilms = filmStorage.getFilmsByDirectorIdSortedByYear(id);
+            case "likes" -> returnedFilms = filmStorage.getFilmsByDirectorIdSortedByLikes(id);
+            default -> returnedFilms = filmStorage.getFilmsByDirectorId(id);
+        }
+
+        return returnedFilms.stream()
                 .map(FilmMapper::mapToFilmDto)
                 .peek(dto -> {
                     dto.setGenres(genreService.getGenresByFilmId(dto.getId()));

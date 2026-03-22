@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,7 +17,6 @@ import ru.yandex.practicum.filmorate.dto.director.CreateDirectorRequest;
 import ru.yandex.practicum.filmorate.dto.director.DirectorDto;
 import ru.yandex.practicum.filmorate.dto.director.UpdateDirectorRequest;
 import ru.yandex.practicum.filmorate.service.DirectorService;
-import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
 
 import java.util.Collection;
 
@@ -45,7 +43,7 @@ public class DirectorController {
     }
 
     @PutMapping
-    public DirectorDto update(@RequestBody @Validated({OnUpdate.class}) UpdateDirectorRequest director) {
+    public DirectorDto update(@RequestBody @Valid UpdateDirectorRequest director) {
         return directorService.update(director);
     }
 

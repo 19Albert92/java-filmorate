@@ -127,13 +127,17 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
     }
 
     @Override
-    public List<Film> getFilmsByDirectorId(Long id, String query) {
-        List<Film> returnedFilms;
-        switch (query) {
-            case "year" -> returnedFilms = findMany(FIND_FILMS_BY_DIRECTOR_ID_SORTED_BY_YEAR_QUERY, id);
-            case "likes" -> returnedFilms = findMany(FIND_FILMS_BY_DIRECTOR_ID_SORTED_BY_LIKES_QUERY, id);
-            default -> returnedFilms = findMany(FIND_FILMS_BY_DIRECTOR_ID_QUERY, id);
-        }
-        return returnedFilms;
+    public List<Film> getFilmsByDirectorId(Long id) {
+        return findMany(FIND_FILMS_BY_DIRECTOR_ID_QUERY, id);
+    }
+
+    @Override
+    public List<Film> getFilmsByDirectorIdSortedByYear(Long id) {
+        return findMany(FIND_FILMS_BY_DIRECTOR_ID_SORTED_BY_YEAR_QUERY, id);
+    }
+
+    @Override
+    public List<Film> getFilmsByDirectorIdSortedByLikes(Long id) {
+        return findMany(FIND_FILMS_BY_DIRECTOR_ID_SORTED_BY_LIKES_QUERY, id);
     }
 }

@@ -1,14 +1,15 @@
 package ru.yandex.practicum.filmorate.dto.director;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
 
 @Data
 public class UpdateDirectorRequest {
-    @NotNull(groups = OnUpdate.class, message = "id не может быть пустым")
+    @NotNull(message = "id не может быть пустым")
     private Long id;
 
+    @NotBlank(message = "поле name не может быть пустым")
     private String name;
 
     public boolean hasName() {

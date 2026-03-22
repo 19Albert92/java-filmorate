@@ -201,7 +201,7 @@ public class FilmRepositoryTest {
 
         likeRepository.addLike(like.getFilmId(), like.getUserId());
 
-        List<Film> foundFilms = filmRepository.getFilmsByDirectorId(directorId, "likes");
+        List<Film> foundFilms = filmRepository.getFilmsByDirectorIdSortedByLikes(directorId);
 
         Assertions.assertThat(foundFilms)
                 .isNotNull()
@@ -257,7 +257,7 @@ public class FilmRepositoryTest {
 
         newFilms.forEach(film -> film.setDirectors(List.of(director)));
 
-        List<Film> foundFilms = filmRepository.getFilmsByDirectorId(directorId, "year");
+        List<Film> foundFilms = filmRepository.getFilmsByDirectorIdSortedByYear(directorId);
 
         Assertions.assertThat(foundFilms)
                 .isNotNull()
