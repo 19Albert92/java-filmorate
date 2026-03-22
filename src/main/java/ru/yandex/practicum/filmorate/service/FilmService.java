@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import ru.yandex.practicum.filmorate.dto.film.CreateFilmRequest;
 import ru.yandex.practicum.filmorate.dto.film.FilmDto;
 import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
+import ru.yandex.practicum.filmorate.model.SortBy;
 
 import java.util.Collection;
 
@@ -19,4 +20,6 @@ public interface FilmService {
     boolean toggleLike(Long filmId, Long userid);
 
     Collection<FilmDto> getPopularFilmByLikes(Integer count);
+
+    Collection<FilmDto> getFilmsByDirectorId(Long id, SortBy sortBy);
 }
