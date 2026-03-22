@@ -12,7 +12,6 @@ import ru.yandex.practicum.filmorate.dto.film.CreateFilmRequest;
 import ru.yandex.practicum.filmorate.dto.film.FilmDto;
 import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -98,36 +97,28 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Collection<FilmDto> getFilteredFilms(String query, List<SearchBy> by) {
-        if (query == null || query.isBlank()) {
-            return filmStorage.getPopularFilmByLikes().stream()
-                    .map(FilmMapper::mapToFilmDto)
-                    .peek(film -> film.setGenres(genreService.getGenresByFilmId(film.getId())))
-                    .toList();
-        }
-
-        if (by == null || by.isEmpty()) {
-            throw new ValidationException("Параметр by обязателен при поиске");
-        }
-
-        List<String> byParams = by.stream()
-                .map(Enum::name)
-                .toList();
-
         List<Film> filteredFilms;
 
-        if (byParams.contains(SearchBy.title) && byParams.contains(SearchBy.director)) {
+        List<String> byParams = by.stream()
+                .map(e -> e.name().toLowerCase())
+                .toList();
+
+        if (byParams.contains(SearchBy.title.name()) && byParams.contains(SearchBy.director.name())) {
             filteredFilms = filmStorage.getFilteredByTitleAndDirectorFilms(query);
-        } else if (byParams.contains(SearchBy.title)) {
+        } else if (byParams.contains(SearchBy.title.name())) {
             filteredFilms = filmStorage.getFilteredByTitleFilms(query);
-        } else if (byParams.contains(SearchBy.director)) {
+        } else if (byParams.contains(SearchBy.director.name())) {
             filteredFilms = filmStorage.getFilteredByDirectorFilms(query);
         } else {
-            throw new NotFoundException("Параметр не найден");
+            filteredFilms = filmStorage.getPopularFilmByLikes();
         }
 
         return filteredFilms.stream()
                 .map(FilmMapper::mapToFilmDto)
-                .peek(film -> film.setGenres(genreService.getGenresByFilmId(film.getId())))
+                .peek(film -> {
+                    film.setGenres(genreService.getGenresByFilmId(film.getId()));
+                    film.setDirectors(directorService.findDirectorsByFilmId(film.getId()));
+                })
                 .toList();
     }
 
@@ -165,8 +156,8 @@ public class FilmServiceImpl implements FilmService {
                     .orElseThrow(() -> new NotFoundException("Такого рейтинга нет"));
         }
 
-        if (request.getDirector() != null && !request.getDirector().isEmpty()) {
-            uniqDirectors = request.getDirector().stream()
+        if (request.getDirectors() != null && !request.getDirectors().isEmpty()) {
+            uniqDirectors = request.getDirectors().stream()
                     .map(Director::getId)
                     .filter(directorId -> directorService.findById(directorId) != null)
                     .collect(Collectors.toSet());
@@ -183,7 +174,7 @@ public class FilmServiceImpl implements FilmService {
         if (!uniqDirectors.isEmpty()) {
             directorService.saveDirectors(film.getId(), uniqDirectors);
 
-            film.setDirectors(request.getDirector());
+            film.setDirectors(request.getDirectors());
         }
 
         return FilmMapper.mapToFilmDto(film);
