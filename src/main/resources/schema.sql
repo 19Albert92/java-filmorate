@@ -69,9 +69,6 @@ CREATE TABLE IF NOT EXISTS feeds(
                                     event_type VARCHAR(50) NOT NULL,
                                     operation VARCHAR(50) NOT NULL,
                                     entity_id BIGINT NOT NULL
-                                    review_id BIGINT REFERENCES reviews(id) ON DELETE CASCADE NOT NULL,
-                                    vote_type BOOLEAN NOT NULL,
-                                    PRIMARY KEY(review_id, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS directors(
