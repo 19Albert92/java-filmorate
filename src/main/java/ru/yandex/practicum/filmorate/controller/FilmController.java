@@ -61,6 +61,17 @@ public class FilmController {
         return filmService.getPopularFilmByLikes(count);
     }
 
+    @GetMapping("/common")
+    public Collection<FilmDto> findCommonFilms(
+            @RequestParam Long userId,
+            @RequestParam Long friendId
+    ) {
+        CommonValidate.checkNotNullAndPositive(userId, "Параметр userId должен быть положительным");
+        CommonValidate.checkNotNullAndPositive(friendId, "Параметр friendId должен быть положительным");
+
+        return filmService.getCommonFilms(userId, friendId);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public FilmDto create(@RequestBody @Valid CreateFilmRequest film) {
