@@ -44,13 +44,6 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             LIMIT ?
             """;
 
-    /*
-    Искать уникальные фильмы с условиями:
-        - у пользователей (со схожими фильмами), не равными "null" и "?", в лимите 10;
-        - не равными "null";
-        - не в составе фильмов "?";
-        - лимит 15 (много не нужно)
-    */
     private static final String FIND_FILM_RECOMMENDATIONS_QUERY = """
             SELECT f.*, m.name AS mpa_name
             FROM films AS f
