@@ -73,6 +73,8 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
                 )
                 LIMIT 15
             )
+            """;
+
     private static final String FIND_COMMON_FILMS_QUERY = """
             SELECT f.*, m.name AS mpa_name
             FROM films AS f
@@ -213,8 +215,11 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
     }
 
     @Override
-    public List<Film> getRecommendations(Long userId)  {
-        return findMany(FIND_FILM_RECOMMENDATIONS_QUERY, userId, userId, userId);
+    public List<Film> getRecommendations(Long userId) {
+            return findMany(FIND_FILM_RECOMMENDATIONS_QUERY, userId, userId, userId);
+    }
+
+    @Override
     public List<Film> getPopularFilmByLikes() {
         return findMany(FIND_POPULAR_FILMS_QUERY);
     }

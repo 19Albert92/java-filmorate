@@ -266,6 +266,8 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Collection<FilmDto> getRecommendations(Long id) {
+        userStorage.findById(id).orElseThrow(() -> new NotFoundException("User is not found"));
+
         try {
             return filmStorage.getRecommendations(id).stream()
                     .map(FilmMapper::mapToFilmDto)

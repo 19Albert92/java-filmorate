@@ -5,10 +5,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.feed.FeedDto;
+import ru.yandex.practicum.filmorate.dto.film.FilmDto;
 import ru.yandex.practicum.filmorate.dto.user.CreateUserRequest;
 import ru.yandex.practicum.filmorate.dto.user.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.user.UserDto;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FeedService;
+import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.util.validate.CommonValidate;
 import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
@@ -23,9 +26,10 @@ public class UserController {
     private final FilmService filmService;
     private final FeedService feedService;
 
-    public UserController(UserService userService, FeedService feedService) {
+    public UserController(UserService userService, FeedService feedService, FilmService filmService) {
         this.userService = userService;
         this.feedService = feedService;
+        this.filmService = filmService;
     }
 
     @GetMapping
