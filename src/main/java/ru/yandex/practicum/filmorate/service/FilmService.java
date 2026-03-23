@@ -24,6 +24,7 @@ public interface FilmService {
     Collection<FilmDto> getPopularFilmByLikes(Integer count);
 
     Collection<FilmDto> getRecommendations(Long id);
+
     Collection<FilmDto> getFilteredFilms(String query, List<SearchBy> by);
 
     Collection<FilmDto> getCommonFilms(Long userId, Long friendId);
