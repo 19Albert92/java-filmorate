@@ -128,4 +128,13 @@ public class FilmController {
     ) {
         return filmService.getFilmsByDirectorId(directorId, sortBy);
     }
+
+    @GetMapping("/films/popular?count={limit}&genreId={genreId}&year={year}")
+    public Collection<FilmDto> findMostPopulars(
+            @PathVariable @Positive Long count,
+            @PathVariable Long genreId,
+            @PathVariable Long year
+    ) {
+        return filmService.getMostPopulars(count, genreId, year);
+    }
 }

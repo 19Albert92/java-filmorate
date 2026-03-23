@@ -277,6 +277,18 @@ public class FilmServiceImpl implements FilmService {
             return Collections.emptyList();
         }
     }
+
+    @Override
+    public Collection<FilmDto> getMostPopulars(Long count, Long genreId, Long year) {
+        try {
+            return filmStorage.getMostPopulars(count, genreId, year).stream()
+                    .map(FilmMapper::mapToFilmDto)
+                    .peek(dto -> dto.setGenres(genreService.getGenresByFilmId(dto.getId())))
+                    .toList();
+        } catch (EmptyResultDataAccessException e) {
+            return Collections.emptyList();
+        }
+    }
 }
 
 
