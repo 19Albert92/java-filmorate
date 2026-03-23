@@ -4,17 +4,17 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.dal.ReviewRepository;
+import ru.yandex.practicum.filmorate.dto.feed.FeedDto;
 import ru.yandex.practicum.filmorate.dto.review.CreateReviewRequest;
 import ru.yandex.practicum.filmorate.dto.review.ReviewDto;
 import ru.yandex.practicum.filmorate.dto.review.ReviewVoteRequest;
 import ru.yandex.practicum.filmorate.dto.review.UpdateReviewRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.ReviewMapper;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.OperationType;
 import ru.yandex.practicum.filmorate.model.Review;
-import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.service.ReviewService;
-import ru.yandex.practicum.filmorate.service.ReviewVoteService;
-import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.*;
 
 import java.util.Collection;
 
@@ -26,13 +26,16 @@ public class ReviewServiceImpl implements ReviewService {
 
     private final UserService userService;
 
+    private final FeedService feedService;
+
     private final FilmService filmService;
 
     private final ReviewVoteService voteService;
 
-    public ReviewServiceImpl(ReviewRepository reviewRepository, UserService userService, FilmService filmService, ReviewVoteService voteService) {
+    public ReviewServiceImpl(ReviewRepository reviewRepository, UserService userService, FeedService feedService, FilmService filmService, ReviewVoteService voteService) {
         this.reviewRepository = reviewRepository;
         this.userService = userService;
+        this.feedService = feedService;
         this.filmService = filmService;
         this.voteService = voteService;
     }
@@ -48,6 +51,8 @@ public class ReviewServiceImpl implements ReviewService {
 
         review = reviewRepository.create(review);
 
+        saveFeed(review.getId(), review.getUserId(), OperationType.ADD);
+
         return ReviewMapper.mapToReviewDto(review);
     }
 
@@ -58,6 +63,8 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new NotFoundException("Отзыва с данным id нет"));
 
         Review returningReview = ReviewMapper.mapToUpdateFields(review, reviewRequest);
+
+        saveFeed(reviewRequest.getReviewId(), review.getUserId(), OperationType.UPDATE);
 
         return ReviewMapper.mapToReviewDto(reviewRepository.update(returningReview));
     }
@@ -72,8 +79,10 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public boolean deleteReviewById(Long reviewId) {
 
-        reviewRepository.findById(reviewId)
+        Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NotFoundException("Отзыва с данным id нет"));
+
+        saveFeed(reviewId, review.getUserId(), OperationType.REMOVE);
 
         return reviewRepository.deleteReview(reviewId);
     }
@@ -138,5 +147,14 @@ public class ReviewServiceImpl implements ReviewService {
     void checkReviewAndUser(ReviewVoteRequest reviewVoteRequest) {
         userService.findById(reviewVoteRequest.getUserId());
         reviewRepository.findById(reviewVoteRequest.getReviewId());
+    }
+
+    private void saveFeed(Long reviewId, Long userId, OperationType operation) {
+        FeedDto feedDto = new FeedDto();
+        feedDto.setEventType(EventType.REVIEW);
+        feedDto.setEntityId(reviewId);
+        feedDto.setUserId(userId);
+        feedDto.setOperation(operation);
+        feedService.addFeed(feedDto);
     }
 }

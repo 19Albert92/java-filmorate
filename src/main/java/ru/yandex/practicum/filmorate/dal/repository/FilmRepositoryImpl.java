@@ -53,6 +53,37 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             ORDER BY COUNT(DISTINCT fl_all.user_id) DESC
             """;
 
+    private static final String FIND_FILMS_BY_DIRECTOR_ID_QUERY = """
+            SELECT f.*, m.name AS mpa_name
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            LEFT JOIN films_directors AS fd ON f.id = fd.film_id
+            LEFT JOIN directors AS d ON fd.director_id = d.id
+            WHERE d.id = ?
+            """;
+
+    private static final String FIND_FILMS_BY_DIRECTOR_ID_SORTED_BY_YEAR_QUERY = """
+            SELECT f.*, m.name AS mpa_name
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            LEFT JOIN films_directors AS fd ON f.id = fd.film_id
+            LEFT JOIN directors AS d ON fd.director_id = d.id
+            WHERE d.id = ?
+            ORDER BY f.release_date
+            """;
+
+    private static final String FIND_FILMS_BY_DIRECTOR_ID_SORTED_BY_LIKES_QUERY = """
+            SELECT f.*, m.name AS mpa_name
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            LEFT JOIN films_directors AS fd ON f.id = fd.film_id
+            LEFT JOIN directors AS d ON fd.director_id = d.id
+            LEFT JOIN film_likes AS fl ON f.id = fl.film_id
+            WHERE d.id = ?
+            GROUP BY f.id, m.name
+            ORDER BY COUNT(fl.user_id) DESC
+            """;
+
     public FilmRepositoryImpl(JdbcTemplate jdbcTemplate, RowMapper<Film> mapper) {
         super(jdbcTemplate, mapper);
     }
@@ -109,5 +140,20 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
     @Override
     public List<Film> getCommonFilms(Long userId, Long friendId) {
         return findMany(FIND_COMMON_FILMS_QUERY, userId, friendId);
+    }
+
+    @Override
+    public List<Film> getFilmsByDirectorId(Long id) {
+        return findMany(FIND_FILMS_BY_DIRECTOR_ID_QUERY, id);
+    }
+
+    @Override
+    public List<Film> getFilmsByDirectorIdSortedByYear(Long id) {
+        return findMany(FIND_FILMS_BY_DIRECTOR_ID_SORTED_BY_YEAR_QUERY, id);
+    }
+
+    @Override
+    public List<Film> getFilmsByDirectorIdSortedByLikes(Long id) {
+        return findMany(FIND_FILMS_BY_DIRECTOR_ID_SORTED_BY_LIKES_QUERY, id);
     }
 }
