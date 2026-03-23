@@ -30,6 +30,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.tuple;
+
 @JdbcTest
 @AutoConfigureTestDatabase
 @Import({FilmRepositoryImpl.class, FilmRowMapper.class, LikeRepositoryImpl.class, LikeRowMapper.class,
@@ -266,5 +268,88 @@ public class FilmRepositoryTest {
                 .as("Фильмы должны быть отсортированы по возрастанию года")
                 .extracting(Film::getReleaseDate)
                 .isSorted();
+    }
+
+    @Test
+    public void getFilteredFilms_whenNoParams_shouldReturnFilmsSortedByPopularity() {
+
+        Film expectedPopularFilm = films.getLast();
+
+        Like like = Like.builder()
+                .userId(user.getId())
+                .filmId(expectedPopularFilm.getId())
+                .build();
+
+        likeRepository.addLike(like.getFilmId(), like.getUserId());
+
+        List<Film> foundFilms = filmRepository.getPopularFilmByLikes();
+
+        Assertions.assertThat(foundFilms)
+                .isNotNull()
+                .as("Количество фильмов должно быть %d", 6)
+                .hasSize(6)
+                .first()
+                .as("Первый должен быть с наибольшим количеством лайков")
+                .hasFieldOrPropertyWithValue("id", expectedPopularFilm.getId())
+                .hasFieldOrPropertyWithValue("name", expectedPopularFilm.getName());
+    }
+
+    @Test
+    public void getFilteredFilms_whenAllQueryParams_shouldReturnFilmsWithTitleAndDirectorFromParam() {
+
+        director = Director.builder()
+                .name("Best Director")
+                .build();
+
+        director = directorRepository.create(director);
+
+        Long directorId = director.getId();
+
+        Mpa mpa = Mpa.builder().id(1).build();
+
+        Film firstFilm = Film.builder()
+                .name("Name")
+                .description("description")
+                .releaseDate(LocalDate.of(1990, 4, 1))
+                .duration(120L)
+                .mpa(mpa)
+                .build();
+
+        Film secondFilm = Film.builder()
+                .name("The Best Film Ever")
+                .description("description")
+                .releaseDate(LocalDate.of(1990, 4, 1))
+                .duration(120L)
+                .mpa(mpa)
+                .build();
+
+        Film thirdFilm = Film.builder()
+                .name("Test")
+                .description("description")
+                .releaseDate(LocalDate.of(1990, 4, 1))
+                .duration(120L)
+                .mpa(mpa)
+                .build();
+
+        List<Film> newFilms = List.of(firstFilm, secondFilm, thirdFilm);
+
+        newFilms.forEach(film -> filmRepository.create(film));
+
+        directorRepository.save(Collections.singletonList(new Object[]{thirdFilm.getId(), directorId}));
+
+        thirdFilm.setDirectors(List.of(director));
+
+        List<Film> foundFilms = filmRepository.getFilteredByTitleAndDirectorFilms("best");
+
+        Assertions.assertThat(foundFilms)
+                .isNotNull()
+                .as("Количество фильмов должно быть %d", 2)
+                .hasSize(2)
+                .as("Названия фильмов должны соответствовать запросу")
+                .extracting(Film::getId, Film::getName)
+                .containsExactlyInAnyOrder(
+                        tuple(secondFilm.getId(), secondFilm.getName()),
+                        tuple(thirdFilm.getId(), thirdFilm.getName())
+                );
     }
 }
