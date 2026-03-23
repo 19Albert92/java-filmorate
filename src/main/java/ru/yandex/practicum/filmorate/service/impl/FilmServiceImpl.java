@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.service.DirectorService;
+import ru.yandex.practicum.filmorate.model.SearchBy;
 import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.GenreService;
@@ -103,6 +104,33 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
+    public Collection<FilmDto> getFilteredFilms(String query, List<SearchBy> by) {
+        List<Film> filteredFilms;
+
+        List<String> byParams = by.stream()
+                .map(e -> e.name().toLowerCase())
+                .toList();
+
+        if (byParams.contains(SearchBy.title.name()) && byParams.contains(SearchBy.director.name())) {
+            filteredFilms = filmStorage.getFilteredByTitleAndDirectorFilms(query);
+        } else if (byParams.contains(SearchBy.title.name())) {
+            filteredFilms = filmStorage.getFilteredByTitleFilms(query);
+        } else if (byParams.contains(SearchBy.director.name())) {
+            filteredFilms = filmStorage.getFilteredByDirectorFilms(query);
+        } else {
+            filteredFilms = filmStorage.getPopularFilmByLikes();
+        }
+
+        return filteredFilms.stream()
+                .map(FilmMapper::mapToFilmDto)
+                .peek(film -> {
+                    film.setGenres(genreService.getGenresByFilmId(film.getId()));
+                    film.setDirectors(directorService.findDirectorsByFilmId(film.getId()));
+                })
+                .toList();
+    }
+
+    @Override
     public Collection<FilmDto> getCommonFilms(Long userId, Long friendId) {
         userStorage.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователя с данным id нет"));
@@ -150,8 +178,8 @@ public class FilmServiceImpl implements FilmService {
                     .orElseThrow(() -> new NotFoundException("Такого рейтинга нет"));
         }
 
-        if (request.getDirector() != null && !request.getDirector().isEmpty()) {
-            uniqDirectors = request.getDirector().stream()
+        if (request.getDirectors() != null && !request.getDirectors().isEmpty()) {
+            uniqDirectors = request.getDirectors().stream()
                     .map(Director::getId)
                     .filter(directorId -> directorService.findById(directorId) != null)
                     .collect(Collectors.toSet());
@@ -168,7 +196,7 @@ public class FilmServiceImpl implements FilmService {
         if (!uniqDirectors.isEmpty()) {
             directorService.saveDirectors(film.getId(), uniqDirectors);
 
-            film.setDirectors(request.getDirector());
+            film.setDirectors(request.getDirectors());
         }
 
         return FilmMapper.mapToFilmDto(film);

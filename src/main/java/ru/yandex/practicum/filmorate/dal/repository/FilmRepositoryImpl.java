@@ -53,8 +53,52 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             ORDER BY COUNT(DISTINCT fl_all.user_id) DESC
             """;
 
-    private static final String FIND_FILMS_BY_DIRECTOR_ID_QUERY = """
+    private static final String FIND_POPULAR_FILMS_QUERY = """
             SELECT f.*, m.name AS mpa_name
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            LEFT JOIN film_likes AS fl ON f.id = fl.film_id
+            GROUP BY f.id, m.name
+            ORDER BY COUNT(fl.user_id) DESC
+            """;
+
+    private static final String FIND_FILTERED_BY_TITLE_AND_DIRECTOR_FILMS_QUERY = """
+            SELECT f.*, m.name AS mpa_name, COUNT(DISTINCT fl.user_id) AS likes_count
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            LEFT JOIN films_directors AS fd ON f.id = fd.film_id
+            LEFT JOIN directors AS d ON fd.director_id = d.id
+            LEFT JOIN film_likes AS fl ON f.id = fl.film_id
+            WHERE f.name ILIKE ?
+            OR d.name ILIKE ?
+            GROUP BY f.id, m.name
+            ORDER BY likes_count DESC
+            """;
+
+    private static final String FIND_FILTERED_BY_TITLE_FILMS_QUERY = """
+            SELECT f.*, m.name AS mpa_name, COUNT(fl.user_id) AS likes_count
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            LEFT JOIN film_likes AS fl ON f.id = fl.film_id
+            WHERE f.name ILIKE ?
+            GROUP BY f.id, m.name
+            ORDER BY likes_count DESC
+            """;
+
+    private static final String FIND_FILTERED_BY_DIRECTOR_FILMS_QUERY = """
+            SELECT f.*, m.name AS mpa_name, COUNT(DISTINCT fl.user_id) AS likes_count
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            JOIN films_directors AS fd ON f.id = fd.film_id
+            JOIN directors AS d ON fd.director_id = d.id
+            LEFT JOIN film_likes AS fl ON f.id = fl.film_id
+            WHERE d.name ILIKE ?
+            GROUP BY f.id, m.name
+            ORDER BY likes_count DESC
+            """;
+
+    private static final String FIND_FILMS_BY_DIRECTOR_ID_QUERY = """
+            SELECT DISTINCT f.*, m.name AS mpa_name
             FROM films AS f
             LEFT JOIN mpa AS m ON f.mpa_id = m.id
             LEFT JOIN films_directors AS fd ON f.id = fd.film_id
@@ -135,6 +179,29 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
     @Override
     public List<Film> getPopularFilmByLikes(Integer limit) {
         return findMany(FIND_POPULAR_FILMS_BY_LIMIT_QUERY, limit);
+    }
+
+    @Override
+    public List<Film> getPopularFilmByLikes() {
+        return findMany(FIND_POPULAR_FILMS_QUERY);
+    }
+
+    @Override
+    public List<Film> getFilteredByTitleAndDirectorFilms(String query) {
+        String queryParam = "%" + query + "%";
+        return findMany(FIND_FILTERED_BY_TITLE_AND_DIRECTOR_FILMS_QUERY, queryParam, queryParam);
+    }
+
+    @Override
+    public List<Film> getFilteredByTitleFilms(String query) {
+        String queryParam = "%" + query + "%";
+        return findMany(FIND_FILTERED_BY_TITLE_FILMS_QUERY, queryParam);
+    }
+
+    @Override
+    public List<Film> getFilteredByDirectorFilms(String query) {
+        String queryParam = "%" + query + "%";
+        return findMany(FIND_FILTERED_BY_DIRECTOR_FILMS_QUERY, queryParam);
     }
 
     @Override

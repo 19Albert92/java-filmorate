@@ -28,5 +28,5 @@ public class CreateFilmRequest {
     private Long duration;
     private List<Genre> genres;
     private Mpa mpa;
-    private List<Director> director;
+    private List<Director> directors;
 }
