@@ -10,6 +10,4 @@ public interface FilmRepository extends CrudMethodsRepository<Film, Long> {
     List<Film> getPopularFilmByLikes(Integer limit);
 
     List<Film> getRecommendations(Long id);
-
-    List<Film> getLikes(Long id);
 }

@@ -25,20 +25,6 @@ public class UserRepositoryImpl extends BaseRepository<User> implements UserRepo
     private static final String UPDATE_USER_QUERY =
             "UPDATE users SET email = ?, name = ?, birthday = ?, login = ? WHERE id = ?";
 
-    private static final String FIND_USERS_WITH_SAME_LIKES_QUERY = """
-            SELECT * FROM users WHERE id IN (
-                SELECT DISTINCT user_id
-                FROM film_likes
-                WHERE film_id IN (
-                    SELECT film_id
-                    FROM film_likes
-                    WHERE user_id = ?
-                )
-                AND user_id <> ?
-                LIMIT 10
-            )
-            """;
-
     @Autowired
     public UserRepositoryImpl(JdbcTemplate jdbcTemplate, RowMapper<User> mapper) {
         super(jdbcTemplate, mapper);
@@ -83,10 +69,5 @@ public class UserRepositoryImpl extends BaseRepository<User> implements UserRepo
     @Override
     public Collection<User> findAll() {
         return findMany(FIND_ALL_USERS_QUERY);
-    }
-
-    @Override
-    public List<User> getUsersWithSameLikes(Long userId) {
-        return findMany(FIND_USERS_WITH_SAME_LIKES_QUERY, userId);
     }
 }

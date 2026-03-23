@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.dal.FilmRepository;
@@ -139,13 +140,13 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Collection<FilmDto> getRecommendations(Long id) {
-        if (filmStorage.getLikes(id).isEmpty() || userStorage.getUsersWithSameLikes(id).isEmpty()) {
+        try {
+            return filmStorage.getRecommendations(id).stream()
+                    .map(FilmMapper::mapToFilmDto)
+                    .peek(dto -> dto.setGenres(genreService.getGenresByFilmId(dto.getId())))
+                    .toList();
+        } catch (EmptyResultDataAccessException e) {
             return Collections.emptyList();
         }
-
-        return filmStorage.getRecommendations(id).stream()
-                .map(FilmMapper::mapToFilmDto)
-                .peek(dto -> dto.setGenres(genreService.getGenresByFilmId(dto.getId())))
-                .toList();
     }
 }
