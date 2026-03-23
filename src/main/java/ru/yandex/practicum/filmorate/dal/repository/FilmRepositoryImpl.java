@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dal.repository;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
+@Slf4j
 public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yandex.practicum.filmorate.dal.FilmRepository {
 
     private static final String FIND_FILMS_ALL_QUERY = """
@@ -40,6 +42,37 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             GROUP BY f.id, m.name
             ORDER BY COUNT(fl.user_id) DESC
             LIMIT ?
+            """;
+
+    private static final String FIND_FILM_RECOMMENDATIONS_QUERY = """
+            SELECT f.*, m.name AS mpa_name
+            FROM films AS f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            WHERE f.id in (
+                SELECT DISTINCT film_id
+                FROM film_likes
+                WHERE user_id in (
+                    SELECT user_id
+                    FROM film_likes
+                    WHERE film_id IN (
+                        SELECT film_id
+                        FROM film_likes
+                        WHERE user_id = ?
+                    )
+                    AND user_id IS NOT NULL
+                    AND user_id <> ?
+                    GROUP BY user_id
+                    ORDER BY count(film_id)
+                    DESC limit 10
+                )
+                AND film_id is not null
+                AND film_id NOT IN (
+                    select film_id
+                    from film_likes
+                    where user_id = ?
+                )
+                LIMIT 15
+            )
             """;
 
     private static final String FIND_COMMON_FILMS_QUERY = """
@@ -179,6 +212,11 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
     @Override
     public List<Film> getPopularFilmByLikes(Integer limit) {
         return findMany(FIND_POPULAR_FILMS_BY_LIMIT_QUERY, limit);
+    }
+
+    @Override
+    public List<Film> getRecommendations(Long userId) {
+            return findMany(FIND_FILM_RECOMMENDATIONS_QUERY, userId, userId, userId);
     }
 
     @Override
