@@ -4,11 +4,11 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.dto.film.FilmDto;
+import ru.yandex.practicum.filmorate.dto.feed.FeedDto;
 import ru.yandex.practicum.filmorate.dto.user.CreateUserRequest;
 import ru.yandex.practicum.filmorate.dto.user.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.user.UserDto;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.util.validate.CommonValidate;
 import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
@@ -21,10 +21,11 @@ public class UserController {
 
     private final UserService userService;
     private final FilmService filmService;
+    private final FeedService feedService;
 
-    public UserController(UserService userService, FilmService filmService) {
+    public UserController(UserService userService, FeedService feedService) {
         this.userService = userService;
-        this.filmService = filmService;
+        this.feedService = feedService;
     }
 
     @GetMapping
@@ -62,6 +63,13 @@ public class UserController {
         CommonValidate.checkNotNullAndPositive(otherId, "Параметр otherId должен быть положительным");
 
         return userService.getAllCommonFriends(id, otherId);
+    }
+
+    @GetMapping("/{id}/feed")
+    public Collection<FeedDto> getFeedByUser(@PathVariable Long id) {
+        CommonValidate.checkNotNullAndPositive(id, "Параметр id должен быть положительным");
+
+        return feedService.getAllFeeds(id);
     }
 
     @PostMapping
