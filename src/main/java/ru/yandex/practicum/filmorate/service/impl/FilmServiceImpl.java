@@ -107,6 +107,16 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Collection<FilmDto> getFilteredFilms(String query, List<SearchBy> by) {
+        if (by == null || by.isEmpty() || query == null || query.isBlank()) {
+            return filmStorage.getPopularFilmByLikes().stream()
+                    .map(FilmMapper::mapToFilmDto)
+                    .peek(film -> {
+                        film.setGenres(genreService.getGenresByFilmId(film.getId()));
+                        film.setDirectors(directorService.findDirectorsByFilmId(film.getId()));
+                    })
+                    .toList();
+        }
+
         List<Film> filteredFilms;
 
         List<String> byParams = by.stream()
@@ -222,8 +232,9 @@ public class FilmServiceImpl implements FilmService {
 
         film = filmStorage.update(film);
 
+        directorStorage.removeFilmDirectors(film.getId());
+
         if (!uniqDirectors.isEmpty()) {
-            directorStorage.removeFilmDirectors(film.getId());
             directorService.saveDirectors(film.getId(), uniqDirectors);
 
             film.setDirectors(request.getDirectors());
@@ -253,6 +264,10 @@ public class FilmServiceImpl implements FilmService {
             case "year" -> returnedFilms = filmStorage.getFilmsByDirectorIdSortedByYear(id);
             case "likes" -> returnedFilms = filmStorage.getFilmsByDirectorIdSortedByLikes(id);
             default -> returnedFilms = filmStorage.getFilmsByDirectorId(id);
+        }
+
+        if (returnedFilms == null || returnedFilms.isEmpty()) {
+            throw new NotFoundException("Фильм с id " + id + " не найден");
         }
 
         return returnedFilms.stream()
