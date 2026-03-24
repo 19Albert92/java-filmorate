@@ -34,6 +34,8 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
     private static final String UPDATE_FILM_QUERY =
             "UPDATE films SET NAME = ?, DESCRIPTION = ?, RELEASE_DATE = ?, DURATION = ?, MPA_ID = ? WHERE ID = ?";
 
+    private static final String DELETE_FILM_BY_ID_QUERY = "DELETE FROM films WHERE id = ?";
+
     private static final String FIND_POPULAR_FILMS_BY_LIMIT_QUERY = """
             SELECT f.*, m.name AS mpa_name
             FROM films AS f
@@ -260,5 +262,15 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
     @Override
     public List<Film> getFilmsByDirectorIdSortedByLikes(Long id) {
         return findMany(FIND_FILMS_BY_DIRECTOR_ID_SORTED_BY_LIKES_QUERY, id);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+
+        int rows = update(DELETE_FILM_BY_ID_QUERY, id);
+
+        if (rows == 0) {
+            throw new InternalServerException("Не удалось удалить данные");
+        }
     }
 }

@@ -129,6 +129,15 @@ public class UserServiceImpl implements UserService {
                 .toList();
     }
 
+    @Override
+    public void delete(Long userId) {
+
+        userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+
+        userStorage.deleteById(userId);
+    }
+
     private void checkUsersExist(Long... users) {
         for (Long id : users) {
             userStorage.findById(id)
