@@ -66,7 +66,7 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     @Transactional
-    public boolean toggleLike(Long filmId, Long userid) {
+    public boolean toggleLike(Long filmId, Long userid, OperationType operation) {
 
         userStorage.findById(userid)
                 .orElseThrow(() -> new NotFoundException("Пользователя с данным id нет"));
@@ -80,16 +80,14 @@ public class FilmServiceImpl implements FilmService {
         feedDto.setEventType(EventType.LIKE);
         feedDto.setEntityId(filmId);
         feedDto.setUserId(userid);
+        feedDto.setOperation(operation);
+        feedService.addFeed(feedDto);
 
         if (isExists) {
             likeStorage.deleteLike(filmId, userid);
-            feedDto.setOperation(OperationType.REMOVE);
         } else {
             likeStorage.addLike(filmId, userid);
-            feedDto.setOperation(OperationType.ADD);
         }
-
-        feedService.addFeed(feedDto);
 
         return true;
     }
@@ -107,6 +105,16 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Collection<FilmDto> getFilteredFilms(String query, List<SearchBy> by) {
+        if (by == null || by.isEmpty() || query == null || query.isBlank()) {
+            return filmStorage.getPopularFilmByLikes().stream()
+                    .map(FilmMapper::mapToFilmDto)
+                    .peek(film -> {
+                        film.setGenres(genreService.getGenresByFilmId(film.getId()));
+                        film.setDirectors(directorService.findDirectorsByFilmId(film.getId()));
+                    })
+                    .toList();
+        }
+
         List<Film> filteredFilms;
 
         List<String> byParams = by.stream()
@@ -164,16 +172,7 @@ public class FilmServiceImpl implements FilmService {
 
         Film film = FilmMapper.mapToFilm(request);
 
-        Set<Integer> uniqGenres = new HashSet<>();
-
         Set<Long> uniqDirectors = new HashSet<>();
-
-        if (request.getGenres() != null && !request.getGenres().isEmpty()) {
-            uniqGenres = request.getGenres().stream()
-                    .map(Genre::getId)
-                    .filter(genre_id -> genreService.getById(genre_id) != null)
-                    .collect(Collectors.toSet());
-        }
 
         if (request.getMpa() != null) {
             mpaStorage.findById(request.getMpa().getId())
@@ -189,22 +188,24 @@ public class FilmServiceImpl implements FilmService {
 
         film = filmStorage.create(film);
 
-        if (!uniqGenres.isEmpty()) {
-            genreService.saveGenres(film.getId(), uniqGenres);
-
-            film.setGenres(request.getGenres());
-        }
-
         if (!uniqDirectors.isEmpty()) {
             directorService.saveDirectors(film.getId(), uniqDirectors);
 
             film.setDirectors(request.getDirectors());
         }
 
+        if (request.getGenres() != null) {
+
+            List<Genre> uniqGenres = genreService.saveGenres(film.getId(), request.getGenres());
+
+            film.setGenres(uniqGenres);
+        }
+
         return FilmMapper.mapToFilmDto(film);
     }
 
     @Override
+    @Transactional
     public FilmDto update(UpdateFilmRequest request) {
 
         Film film = filmStorage.findById(request.getId())
@@ -220,10 +221,23 @@ public class FilmServiceImpl implements FilmService {
                     .collect(Collectors.toSet());
         }
 
+        if (request.getGenres() != null) {
+
+            List<Genre> uniqGenres = genreService.saveGenres(film.getId(), request.getGenres());
+
+            film.setGenres(uniqGenres);
+        }
+
+        if (request.getMpa() != null) {
+            mpaStorage.findById(request.getMpa().getId())
+                    .orElseThrow(() -> new NotFoundException("Такого рейтинга нет"));
+        }
+
         film = filmStorage.update(film);
 
+        directorStorage.removeFilmDirectors(film.getId());
+
         if (!uniqDirectors.isEmpty()) {
-            directorStorage.removeFilmDirectors(film.getId());
             directorService.saveDirectors(film.getId(), uniqDirectors);
 
             film.setDirectors(request.getDirectors());
@@ -245,6 +259,8 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Collection<FilmDto> getFilmsByDirectorId(Long id, SortBy sortBy) {
+        checkDirectorExists(id);
+
         String query = (sortBy != null) ? sortBy.name() : SortBy.defaultSort.name();
 
         List<Film> returnedFilms;
@@ -278,15 +294,16 @@ public class FilmServiceImpl implements FilmService {
         }
     }
 
-    @Override
+  @Override
     @Transactional
     public void delete(Long filmId) {
-
         filmStorage.findById(filmId)
                 .orElseThrow(() -> new NotFoundException("Фильм не найден"));
-
         filmStorage.deleteById(filmId);
     }
-}
+    private void checkDirectorExists(Long directorId) {
+        directorStorage.findById(directorId)
+                .orElseThrow(() -> new NotFoundException("Режиссер не найден"));
+    }
 
 

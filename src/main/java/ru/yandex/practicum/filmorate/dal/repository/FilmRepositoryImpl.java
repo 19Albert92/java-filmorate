@@ -107,7 +107,7 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             WHERE f.name ILIKE ?
             OR d.name ILIKE ?
             GROUP BY f.id, m.name
-            ORDER BY likes_count DESC
+            ORDER BY likes_count DESC, f.id DESC
             """;
 
     private static final String FIND_FILTERED_BY_TITLE_FILMS_QUERY = """
@@ -117,7 +117,7 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             LEFT JOIN film_likes AS fl ON f.id = fl.film_id
             WHERE f.name ILIKE ?
             GROUP BY f.id, m.name
-            ORDER BY likes_count DESC
+            ORDER BY likes_count DESC, f.id DESC
             """;
 
     private static final String FIND_FILTERED_BY_DIRECTOR_FILMS_QUERY = """
@@ -129,7 +129,7 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             LEFT JOIN film_likes AS fl ON f.id = fl.film_id
             WHERE d.name ILIKE ?
             GROUP BY f.id, m.name
-            ORDER BY likes_count DESC
+            ORDER BY likes_count DESC, f.id DESC
             """;
 
     private static final String FIND_FILMS_BY_DIRECTOR_ID_QUERY = """
