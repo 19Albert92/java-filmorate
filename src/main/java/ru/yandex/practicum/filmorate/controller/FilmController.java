@@ -103,13 +103,11 @@ public class FilmController {
     }
 
     @DeleteMapping("/{filmId}")
-    public boolean deleteFilm(@PathVariable Long filmId) {
+    public void deleteFilm(@PathVariable Long filmId) {
 
         CommonValidate.checkNotNullAndPositive(filmId, "Параметр filmId должен быть положительным");
 
         filmService.delete(filmId);
-
-        return true;
     }
 
     @GetMapping("/search")
