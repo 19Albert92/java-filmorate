@@ -256,6 +256,8 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Collection<FilmDto> getFilmsByDirectorId(Long id, SortBy sortBy) {
+        checkDirectorExists(id);
+
         String query = (sortBy != null) ? sortBy.name() : SortBy.defaultSort.name();
 
         List<Film> returnedFilms;
@@ -264,10 +266,6 @@ public class FilmServiceImpl implements FilmService {
             case "year" -> returnedFilms = filmStorage.getFilmsByDirectorIdSortedByYear(id);
             case "likes" -> returnedFilms = filmStorage.getFilmsByDirectorIdSortedByLikes(id);
             default -> returnedFilms = filmStorage.getFilmsByDirectorId(id);
-        }
-
-        if (returnedFilms == null || returnedFilms.isEmpty()) {
-            throw new NotFoundException("Фильм с id " + id + " не найден");
         }
 
         return returnedFilms.stream()
@@ -291,6 +289,11 @@ public class FilmServiceImpl implements FilmService {
         } catch (EmptyResultDataAccessException e) {
             return Collections.emptyList();
         }
+    }
+
+    private void checkDirectorExists(Long directorId) {
+        directorStorage.findById(directorId)
+                .orElseThrow(() -> new NotFoundException("Режиссер не найден"));
     }
 }
 
