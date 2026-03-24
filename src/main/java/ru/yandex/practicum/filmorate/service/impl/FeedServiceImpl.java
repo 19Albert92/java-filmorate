@@ -3,7 +3,9 @@ package ru.yandex.practicum.filmorate.service.impl;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.FeedsRepository;
+import ru.yandex.practicum.filmorate.dal.UserRepository;
 import ru.yandex.practicum.filmorate.dto.feed.FeedDto;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FeedMapper;
 import ru.yandex.practicum.filmorate.service.FeedService;
 
@@ -17,8 +19,11 @@ public class FeedServiceImpl implements FeedService {
 
     private final FeedsRepository feedsRepository;
 
-    public FeedServiceImpl(FeedsRepository feedsRepository) {
+    private final UserRepository userRepository;
+
+    public FeedServiceImpl(FeedsRepository feedsRepository, UserRepository userRepository) {
         this.feedsRepository = feedsRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -33,6 +38,10 @@ public class FeedServiceImpl implements FeedService {
 
     @Override
     public Collection<FeedDto> getAllFeeds(Long userId) {
+
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+
         return feedsRepository.getFeeds(userId).stream()
                 .map(FeedMapper::mapFeedDto)
                 .toList();

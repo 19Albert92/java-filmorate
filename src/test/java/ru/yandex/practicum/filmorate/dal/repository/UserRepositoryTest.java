@@ -90,4 +90,15 @@ public class UserRepositoryTest {
                             .isEqualTo(newBirthday);
                 });
     }
+
+    @Test
+    public void should_delete_user_by_id() {
+
+        long userId = users.getFirst().getId();
+
+        userRepository.deleteById(userId);
+
+        AssertionsForClassTypes.assertThat(userRepository.findById(userId))
+                .isEmpty();
+    }
 }

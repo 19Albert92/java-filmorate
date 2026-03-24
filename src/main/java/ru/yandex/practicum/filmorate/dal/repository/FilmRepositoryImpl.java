@@ -35,6 +35,8 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
     private static final String UPDATE_FILM_QUERY =
             "UPDATE films SET NAME = ?, DESCRIPTION = ?, RELEASE_DATE = ?, DURATION = ?, MPA_ID = ? WHERE ID = ?";
 
+    private static final String DELETE_FILM_BY_ID_QUERY = "DELETE FROM films WHERE id = ?";
+
     private static final String FIND_POPULAR_FILMS_BY_LIMIT_QUERY = """
             SELECT f.*, m.name AS mpa_name
             FROM films AS f
@@ -169,7 +171,7 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             WHERE f.name ILIKE ?
             OR d.name ILIKE ?
             GROUP BY f.id, m.name
-            ORDER BY likes_count DESC
+            ORDER BY likes_count DESC, f.id DESC
             """;
 
     private static final String FIND_FILTERED_BY_TITLE_FILMS_QUERY = """
@@ -179,7 +181,7 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             LEFT JOIN film_likes AS fl ON f.id = fl.film_id
             WHERE f.name ILIKE ?
             GROUP BY f.id, m.name
-            ORDER BY likes_count DESC
+            ORDER BY likes_count DESC, f.id DESC
             """;
 
     private static final String FIND_FILTERED_BY_DIRECTOR_FILMS_QUERY = """
@@ -191,7 +193,7 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             LEFT JOIN film_likes AS fl ON f.id = fl.film_id
             WHERE d.name ILIKE ?
             GROUP BY f.id, m.name
-            ORDER BY likes_count DESC
+            ORDER BY likes_count DESC, f.id DESC
             """;
 
     private static final String FIND_FILMS_BY_DIRECTOR_ID_QUERY = """
@@ -336,6 +338,13 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             return findMany(FIND_MOST_POPULAR_FILMS_BY_YEAR_QUERY, year, count);
         } else {
             return Collections.emptyList();
+
+    public void deleteById(Long id) {
+
+        int rows = update(DELETE_FILM_BY_ID_QUERY, id);
+
+        if (rows == 0) {
+            throw new InternalServerException("Не удалось удалить данные");
         }
     }
 }

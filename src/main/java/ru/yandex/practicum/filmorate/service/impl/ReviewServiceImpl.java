@@ -73,7 +73,7 @@ public class ReviewServiceImpl implements ReviewService {
     public ReviewDto findReviewById(Long reviewId) {
         return reviewRepository.findById(reviewId)
                 .map(ReviewMapper::mapToReviewDto)
-                .orElseThrow(() -> new NotFoundException("Отзыв не найден"));
+                .orElseThrow(() -> new NotFoundException("Отзыва с данным id нет"));
     }
 
     @Override
