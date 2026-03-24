@@ -31,5 +31,5 @@ public interface FilmService {
 
     Collection<FilmDto> getFilmsByDirectorId(Long id, SortBy sortBy);
 
-    Collection<FilmDto> getMostPopulars(Long count, Long genreId, Long year);
+    Collection<FilmDto> getMostPopulars(Integer count, Long genreId, Long year);
 }

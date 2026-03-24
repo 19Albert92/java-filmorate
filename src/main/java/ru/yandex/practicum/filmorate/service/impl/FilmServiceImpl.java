@@ -279,7 +279,7 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
-    public Collection<FilmDto> getMostPopulars(Long count, Long genreId, Long year) {
+    public Collection<FilmDto> getMostPopulars(Integer count, Long genreId, Long year) {
         try {
             return filmStorage.getMostPopulars(count, genreId, year).stream()
                     .map(FilmMapper::mapToFilmDto)

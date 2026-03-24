@@ -75,21 +75,23 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             )
             """;
 
+
+
     private static final String FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY = """
             SELECT DISTINCT f.*, m.name AS mpa_name
             FROM films f
             LEFT JOIN mpa AS m ON f.mpa_id = m.id
             WHERE f.id IN (
-                SELECT fl.film_id
-                FROM film_likes fl
-                    JOIN films f ON fl.film_id = f.id
-                    JOIN film_genres fg ON fl.film_id = fg.film_id
-                WHERE fg.genre_id = ?
-                AND EXTRACT(YEAR FROM f.release_date) = ?
-                GROUP BY fl.film_id
-                ORDER BY COUNT(fl.film_id) DESC
-                LIMIT ?
+                SELECT film_id
+                FROM film_likes
+                WHERE
+                {0}
+                {1}
+                {2}
+                GROUP BY film_id
+                ORDER BY count(film_id) DESC
             )
+            {3}
             """;
 
     private static final String FIND_COMMON_FILMS_QUERY = """
@@ -280,7 +282,30 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
     }
 
     @Override
-    public List<Film> getMostPopulars(Long count, Long genreId, Long year) {
-        return findMany(FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY, genreId, year, count);
+    public List<Film> getMostPopulars(Integer count, Long genreId, Long year) {
+        String fieldGenre = """
+            film_id IN (
+                SELECT film_id
+                FROM film_genres
+                WHERE genre_id = ?
+            )""";
+        String fieldYear = """
+            film_id IN (
+                SELECT id
+                FROM films
+                WHERE EXTRACT(YEAR FROM release_date) = ?
+            )""";
+
+        if (year == null) {
+            return findMany(String.format(
+                    FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY,fieldGenre,"","","LIMIT ?"), genreId, count);
+        } else if (genreId == null) {
+            return findMany(String.format(
+                    FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY,fieldYear,"","","LIMIT ?"), year, count);
+        } else {
+            return findMany(String.format(
+                    FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY,fieldGenre,"AND",fieldYear,"LIMIT ?"),
+                    genreId, year, count);
+        }
     }
 }
