@@ -3,7 +3,8 @@ package ru.yandex.practicum.filmorate.dto.film;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -11,12 +12,14 @@ import java.util.List;
 @Data
 public class UpdateFilmRequest {
 
-    @NotNull(groups = OnUpdate.class, message = "Id не пришел или пришел пустым")
+    @NotNull(message = "Id не пришел или пришел пустым")
     private Long id;
     private String name;
     private String description;
     private LocalDate releaseDate;
     private Long duration;
+    private List<Genre> genres;
+    private Mpa mpa;
     private List<Director> directors;
 
     public boolean hasName() {
@@ -37,5 +40,9 @@ public class UpdateFilmRequest {
 
     public boolean hasDirector() {
         return directors != null && !directors.isEmpty();
+    }
+
+    public boolean hasMpa() {
+        return mpa != null;
     }
 }
