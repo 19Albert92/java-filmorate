@@ -8,6 +8,18 @@ public interface FilmRepository extends CrudMethodsRepository<Film, Long> {
 
     List<Film> getPopularFilmByLikes(Integer limit);
 
+    List<Film> getRecommendations(Long id);
+
+    List<Film> getPopularFilmByLikes();
+
+    List<Film> getFilteredByTitleAndDirectorFilms(String query);
+
+    List<Film> getFilteredByTitleFilms(String query);
+
+    List<Film> getFilteredByDirectorFilms(String query);
+
+    List<Film> getCommonFilms(Long userId, Long friendId);
+
     List<Film> getFilmsByDirectorId(Long id);
 
     List<Film> getFilmsByDirectorIdSortedByYear(Long id);

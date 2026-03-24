@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.dal.*;
@@ -12,11 +13,13 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.service.DirectorService;
+import ru.yandex.practicum.filmorate.model.SearchBy;
 import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.GenreService;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -101,6 +104,57 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
+    public Collection<FilmDto> getFilteredFilms(String query, List<SearchBy> by) {
+        if (by == null || by.isEmpty() || query == null || query.isBlank()) {
+            return filmStorage.getPopularFilmByLikes().stream()
+                    .map(FilmMapper::mapToFilmDto)
+                    .peek(film -> {
+                        film.setGenres(genreService.getGenresByFilmId(film.getId()));
+                        film.setDirectors(directorService.findDirectorsByFilmId(film.getId()));
+                    })
+                    .toList();
+        }
+
+        List<Film> filteredFilms;
+
+        List<String> byParams = by.stream()
+                .map(e -> e.name().toLowerCase())
+                .toList();
+
+        if (byParams.contains(SearchBy.title.name()) && byParams.contains(SearchBy.director.name())) {
+            filteredFilms = filmStorage.getFilteredByTitleAndDirectorFilms(query);
+        } else if (byParams.contains(SearchBy.title.name())) {
+            filteredFilms = filmStorage.getFilteredByTitleFilms(query);
+        } else if (byParams.contains(SearchBy.director.name())) {
+            filteredFilms = filmStorage.getFilteredByDirectorFilms(query);
+        } else {
+            filteredFilms = filmStorage.getPopularFilmByLikes();
+        }
+
+        return filteredFilms.stream()
+                .map(FilmMapper::mapToFilmDto)
+                .peek(film -> {
+                    film.setGenres(genreService.getGenresByFilmId(film.getId()));
+                    film.setDirectors(directorService.findDirectorsByFilmId(film.getId()));
+                })
+                .toList();
+    }
+
+    @Override
+    public Collection<FilmDto> getCommonFilms(Long userId, Long friendId) {
+        userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователя с данным id нет"));
+
+        userStorage.findById(friendId)
+                .orElseThrow(() -> new NotFoundException("Пользователя с данным id нет"));
+
+        return filmStorage.getCommonFilms(userId, friendId).stream()
+                .map(FilmMapper::mapToFilmDto)
+                .peek(film -> film.setGenres(genreService.getGenresByFilmId(film.getId())))
+                .toList();
+    }
+
+    @Override
     public FilmDto findById(Long id) {
         return filmStorage.findById(id)
                 .map(FilmMapper::mapToFilmDto)
@@ -125,8 +179,8 @@ public class FilmServiceImpl implements FilmService {
                     .orElseThrow(() -> new NotFoundException("Такого рейтинга нет"));
         }
 
-        if (request.getDirector() != null && !request.getDirector().isEmpty()) {
-            uniqDirectors = request.getDirector().stream()
+        if (request.getDirectors() != null && !request.getDirectors().isEmpty()) {
+            uniqDirectors = request.getDirectors().stream()
                     .map(Director::getId)
                     .filter(directorId -> directorService.findById(directorId) != null)
                     .collect(Collectors.toSet());
@@ -137,7 +191,7 @@ public class FilmServiceImpl implements FilmService {
         if (!uniqDirectors.isEmpty()) {
             directorService.saveDirectors(film.getId(), uniqDirectors);
 
-            film.setDirectors(request.getDirector());
+            film.setDirectors(request.getDirectors());
         }
 
         if (request.getGenres() != null) {
@@ -181,8 +235,9 @@ public class FilmServiceImpl implements FilmService {
 
         film = filmStorage.update(film);
 
+        directorStorage.removeFilmDirectors(film.getId());
+
         if (!uniqDirectors.isEmpty()) {
-            directorStorage.removeFilmDirectors(film.getId());
             directorService.saveDirectors(film.getId(), uniqDirectors);
 
             film.setDirectors(request.getDirectors());
@@ -204,6 +259,8 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Collection<FilmDto> getFilmsByDirectorId(Long id, SortBy sortBy) {
+        checkDirectorExists(id);
+
         String query = (sortBy != null) ? sortBy.name() : SortBy.defaultSort.name();
 
         List<Film> returnedFilms;
@@ -221,6 +278,25 @@ public class FilmServiceImpl implements FilmService {
                     dto.setDirectors(directorService.findDirectorsByFilmId(dto.getId()));
                 })
                 .toList();
+    }
+
+    @Override
+    public Collection<FilmDto> getRecommendations(Long id) {
+        userStorage.findById(id).orElseThrow(() -> new NotFoundException("User is not found"));
+
+        try {
+            return filmStorage.getRecommendations(id).stream()
+                    .map(FilmMapper::mapToFilmDto)
+                    .peek(dto -> dto.setGenres(genreService.getGenresByFilmId(dto.getId())))
+                    .toList();
+        } catch (EmptyResultDataAccessException e) {
+            return Collections.emptyList();
+        }
+    }
+
+    private void checkDirectorExists(Long directorId) {
+        directorStorage.findById(directorId)
+                .orElseThrow(() -> new NotFoundException("Режиссер не найден"));
     }
 }
 

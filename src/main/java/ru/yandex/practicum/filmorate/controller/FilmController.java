@@ -8,12 +8,14 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.film.CreateFilmRequest;
 import ru.yandex.practicum.filmorate.dto.film.FilmDto;
 import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
+import ru.yandex.practicum.filmorate.model.SearchBy;
 import ru.yandex.practicum.filmorate.model.OperationType;
 import ru.yandex.practicum.filmorate.model.SortBy;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.util.validate.CommonValidate;
 
 import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -47,6 +49,17 @@ public class FilmController {
         CommonValidate.checkNotNullAndPositive(count, "Параметр count должен быть положительным");
 
         return filmService.getPopularFilmByLikes(count);
+    }
+
+    @GetMapping("/common")
+    public Collection<FilmDto> findCommonFilms(
+            @RequestParam Long userId,
+            @RequestParam Long friendId
+    ) {
+        CommonValidate.checkNotNullAndPositive(userId, "Параметр userId должен быть положительным");
+        CommonValidate.checkNotNullAndPositive(friendId, "Параметр friendId должен быть положительным");
+
+        return filmService.getCommonFilms(userId, friendId);
     }
 
     @PostMapping
@@ -87,6 +100,15 @@ public class FilmController {
         CommonValidate.checkNotNullAndPositive(userId, "Параметр userId должен быть положительным");
 
         return filmService.toggleLike(id, userId, OperationType.REMOVE);
+    }
+
+    @GetMapping("/search")
+    public Collection<FilmDto> findFilteredFilms(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) List<SearchBy> by
+    ) {
+
+        return filmService.getFilteredFilms(query, by);
     }
 
     @GetMapping("/director/{directorId}")
