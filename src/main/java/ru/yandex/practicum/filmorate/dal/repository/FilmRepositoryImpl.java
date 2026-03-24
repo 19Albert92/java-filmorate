@@ -297,23 +297,21 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
                 WHERE EXTRACT(YEAR FROM release_date) = ?
             )""";
 
-        if (year != null && genreId != null) {
+        if (year != 0 && genreId != 0) {
             return findMany(String.format(
                     FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY,genreForQuery,"AND",yearForQuery,"LIMIT ?"),
                     genreId, year, count
             );
-        } else if (year == null && genreId != null) {
+        } else if (year == 0 && genreId != 0) {
             return findMany(String.format(
                     FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY,genreForQuery," "," ","LIMIT ?"),
                     genreId, count
             );
-        } else if (year != null) {
+        } else {
             return findMany(String.format(
                     FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY, yearForQuery, " ", " ", "LIMIT ?"),
                     year, count
             );
-        } else {
-            return Collections.emptyList();
         }
     }
 }
