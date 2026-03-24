@@ -408,4 +408,15 @@ public class FilmRepositoryTest {
                         tuple(thirdFilm.getId(), thirdFilm.getName())
                 );
     }
+
+    @Test
+    public void should_delete_film_by_id() {
+
+        Long filmId = films.getFirst().getId();
+
+        filmRepository.deleteById(filmId);
+
+        AssertionsForClassTypes.assertThat(filmRepository.findById(filmId))
+                .isEmpty();
+    }
 }

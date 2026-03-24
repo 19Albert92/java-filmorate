@@ -30,4 +30,6 @@ public interface FilmService {
     Collection<FilmDto> getCommonFilms(Long userId, Long friendId);
 
     Collection<FilmDto> getFilmsByDirectorId(Long id, SortBy sortBy);
+
+    void delete(Long filmId);
 }

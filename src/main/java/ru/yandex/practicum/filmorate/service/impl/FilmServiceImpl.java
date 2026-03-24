@@ -277,6 +277,16 @@ public class FilmServiceImpl implements FilmService {
             return Collections.emptyList();
         }
     }
+
+    @Override
+    @Transactional
+    public void delete(Long filmId) {
+
+        filmStorage.findById(filmId)
+                .orElseThrow(() -> new NotFoundException("Фильм не найден"));
+
+        filmStorage.deleteById(filmId);
+    }
 }
 
 

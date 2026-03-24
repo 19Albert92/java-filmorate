@@ -24,6 +24,8 @@ public class UserRepositoryImpl extends BaseRepository<User> implements UserRepo
     private static final String UPDATE_USER_QUERY =
             "UPDATE users SET email = ?, name = ?, birthday = ?, login = ? WHERE id = ?";
 
+    private static final String DELETE_USER_BY_ID_QUERY = "DELETE FROM users WHERE id = ?";
+
     @Autowired
     public UserRepositoryImpl(JdbcTemplate jdbcTemplate, RowMapper<User> mapper) {
         super(jdbcTemplate, mapper);
@@ -68,5 +70,15 @@ public class UserRepositoryImpl extends BaseRepository<User> implements UserRepo
     @Override
     public Collection<User> findAll() {
         return findMany(FIND_ALL_USERS_QUERY);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+
+        int rows = update(DELETE_USER_BY_ID_QUERY, id);
+
+        if (rows == 0) {
+            throw new InternalServerException("Не удалось удалить данные");
+        }
     }
 }

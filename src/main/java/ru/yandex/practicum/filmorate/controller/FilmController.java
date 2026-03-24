@@ -112,6 +112,16 @@ public class FilmController {
         return filmService.toggleLike(id, userId);
     }
 
+    @DeleteMapping("/{filmId}")
+    public boolean deleteFilm(@PathVariable Long filmId) {
+
+        CommonValidate.checkNotNullAndPositive(filmId, "Параметр filmId должен быть положительным");
+
+        filmService.delete(filmId);
+
+        return true;
+    }
+
     @GetMapping("/search")
     public Collection<FilmDto> findFilteredFilms(
             @RequestParam(required = false) String query,
