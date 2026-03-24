@@ -57,7 +57,7 @@ public class FilmController {
             @RequestParam(defaultValue = "0") Long genreId,
             @RequestParam(defaultValue = "0") Long year
     ) {
-        if (genreId != null) {
+        if (genreId != 0) {
             return filmService.getMostPopulars(limit, genreId, year);
         } else {
             CommonValidate.checkNotNullAndPositive(limit, "Параметр count должен быть положительным");
