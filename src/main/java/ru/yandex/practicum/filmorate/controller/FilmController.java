@@ -5,19 +5,11 @@ import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.film.CreateFilmRequest;
 import ru.yandex.practicum.filmorate.dto.film.FilmDto;
 import ru.yandex.practicum.filmorate.dto.film.UpdateFilmRequest;
+import ru.yandex.practicum.filmorate.model.OperationType;
 import ru.yandex.practicum.filmorate.model.SearchBy;
 import ru.yandex.practicum.filmorate.model.SortBy;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -88,7 +80,7 @@ public class FilmController {
 
         CommonValidate.checkNotNullAndPositive(userId, "Параметр userId должен быть положительным");
 
-        return filmService.toggleLike(id, userId);
+        return filmService.toggleLike(id, userId, OperationType.ADD);
     }
 
     @PutMapping
@@ -109,7 +101,7 @@ public class FilmController {
 
         CommonValidate.checkNotNullAndPositive(userId, "Параметр userId должен быть положительным");
 
-        return filmService.toggleLike(id, userId);
+        return filmService.toggleLike(id, userId, OperationType.REMOVE);
     }
 
     @GetMapping("/search")

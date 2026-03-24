@@ -11,6 +11,10 @@ import java.util.Optional;
 @Repository
 public class GenreRepositoryImpl extends BaseRepository<Genre> implements ru.yandex.practicum.filmorate.dal.GenreRepository {
 
+    private static final String DELETE_BY_FILM_ID_QUERY = """
+           DELETE FROM film_genres WHERE film_id = ?
+           """;
+
     private static final String INSERT_GENRE = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
 
     private static final String FIND_ALL_QUERY = "SELECT * FROM genres";
@@ -47,5 +51,10 @@ public class GenreRepositoryImpl extends BaseRepository<Genre> implements ru.yan
     @Override
     public List<Genre> findByFilmId(Long filmId) {
         return findMany(FIND_BY_FILM_ID_QUERY, filmId);
+    }
+
+    @Override
+    public void clearGenresByFilmId(Long filmId) {
+        update(DELETE_BY_FILM_ID_QUERY, filmId);
     }
 }

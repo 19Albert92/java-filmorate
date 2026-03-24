@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.dto.film;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
 
 import java.time.LocalDate;
@@ -17,6 +19,8 @@ public class UpdateFilmRequest {
     private String description;
     private LocalDate releaseDate;
     private Long duration;
+    private List<Genre> genres;
+    private Mpa mpa;
     private List<Director> directors;
 
     public boolean hasName() {
@@ -37,5 +41,9 @@ public class UpdateFilmRequest {
 
     public boolean hasDirector() {
         return directors != null && !directors.isEmpty();
+    }
+
+    public boolean hasMpa() {
+        return mpa != null;
     }
 }

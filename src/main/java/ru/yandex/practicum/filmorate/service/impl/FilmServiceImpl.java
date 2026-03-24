@@ -13,16 +13,11 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.service.DirectorService;
-import ru.yandex.practicum.filmorate.model.SearchBy;
 import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.GenreService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -66,7 +61,7 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     @Transactional
-    public boolean toggleLike(Long filmId, Long userid) {
+    public boolean toggleLike(Long filmId, Long userid, OperationType operation) {
 
         userStorage.findById(userid)
                 .orElseThrow(() -> new NotFoundException("Пользователя с данным id нет"));
@@ -81,15 +76,15 @@ public class FilmServiceImpl implements FilmService {
         feedDto.setEntityId(filmId);
         feedDto.setUserId(userid);
 
-        if (isExists) {
-            likeStorage.deleteLike(filmId, userid);
-            feedDto.setOperation(OperationType.REMOVE);
-        } else {
-            likeStorage.addLike(filmId, userid);
-            feedDto.setOperation(OperationType.ADD);
-        }
+        feedDto.setOperation(operation);
 
         feedService.addFeed(feedDto);
+
+        if (isExists) {
+            likeStorage.deleteLike(filmId, userid);
+        } else {
+            likeStorage.addLike(filmId, userid);
+        }
 
         return true;
     }
@@ -164,16 +159,7 @@ public class FilmServiceImpl implements FilmService {
 
         Film film = FilmMapper.mapToFilm(request);
 
-        Set<Integer> uniqGenres = new HashSet<>();
-
         Set<Long> uniqDirectors = new HashSet<>();
-
-        if (request.getGenres() != null && !request.getGenres().isEmpty()) {
-            uniqGenres = request.getGenres().stream()
-                    .map(Genre::getId)
-                    .filter(genre_id -> genreService.getById(genre_id) != null)
-                    .collect(Collectors.toSet());
-        }
 
         if (request.getMpa() != null) {
             mpaStorage.findById(request.getMpa().getId())
@@ -189,22 +175,24 @@ public class FilmServiceImpl implements FilmService {
 
         film = filmStorage.create(film);
 
-        if (!uniqGenres.isEmpty()) {
-            genreService.saveGenres(film.getId(), uniqGenres);
-
-            film.setGenres(request.getGenres());
-        }
-
         if (!uniqDirectors.isEmpty()) {
             directorService.saveDirectors(film.getId(), uniqDirectors);
 
             film.setDirectors(request.getDirectors());
         }
 
+        if (request.getGenres() != null) {
+
+            List<Genre> uniqGenres = genreService.saveGenres(film.getId(), request.getGenres());
+
+            film.setGenres(uniqGenres);
+        }
+
         return FilmMapper.mapToFilmDto(film);
     }
 
     @Override
+    @Transactional
     public FilmDto update(UpdateFilmRequest request) {
 
         Film film = filmStorage.findById(request.getId())
@@ -212,6 +200,18 @@ public class FilmServiceImpl implements FilmService {
                 .orElseThrow(() -> new NotFoundException("Фильм не найден"));
 
         Set<Long> uniqDirectors = new HashSet<>();
+
+        if (request.getGenres() != null) {
+
+            List<Genre> uniqGenres = genreService.saveGenres(film.getId(), request.getGenres());
+
+            film.setGenres(uniqGenres);
+        }
+
+        if (request.getMpa() != null) {
+            mpaStorage.findById(request.getMpa().getId())
+                    .orElseThrow(() -> new NotFoundException("Такого рейтинга нет"));
+        }
 
         if (request.hasDirector()) {
             uniqDirectors = request.getDirectors().stream()
