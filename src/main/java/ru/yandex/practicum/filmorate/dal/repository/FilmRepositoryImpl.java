@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -283,29 +284,36 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
 
     @Override
     public List<Film> getMostPopulars(Integer count, Long genreId, Long year) {
-        String fieldGenre = """
+        String genreForQuery = """
             film_id IN (
                 SELECT film_id
                 FROM film_genres
                 WHERE genre_id = ?
             )""";
-        String fieldYear = """
+        String yearForQuery = """
             film_id IN (
                 SELECT id
                 FROM films
                 WHERE EXTRACT(YEAR FROM release_date) = ?
             )""";
 
-        if (year == null) {
+        if (year != null && genreId != null) {
             return findMany(String.format(
-                    FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY,fieldGenre,"","","LIMIT ?"), genreId, count);
-        } else if (genreId == null) {
+                    FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY,genreForQuery,"AND",yearForQuery,"LIMIT ?"),
+                    genreId, year, count
+            );
+        } else if (year == null && genreId != null) {
             return findMany(String.format(
-                    FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY,fieldYear,"","","LIMIT ?"), year, count);
+                    FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY,genreForQuery," "," ","LIMIT ?"),
+                    genreId, count
+            );
+        } else if (year != null) {
+            return findMany(String.format(
+                    FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY, yearForQuery, " ", " ", "LIMIT ?"),
+                    year, count
+            );
         } else {
-            return findMany(String.format(
-                    FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY,fieldGenre,"AND",fieldYear,"LIMIT ?"),
-                    genreId, year, count);
+            return Collections.emptyList();
         }
     }
 }
