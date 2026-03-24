@@ -76,8 +76,6 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             )
             """;
 
-
-
     private static final String FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY = """
             SELECT DISTINCT f.*, m.name AS mpa_name
             FROM films f
@@ -86,13 +84,59 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
                 SELECT film_id
                 FROM film_likes
                 WHERE
-                {0}
-                {1}
-                {2}
+                film_id IN (
+                    SELECT film_id
+                    FROM film_genres
+                    WHERE genre_id = ?
+                )
+                AND
+                film_id IN (
+                    SELECT id
+                    FROM films
+                    WHERE EXTRACT(YEAR FROM release_date) = ?
+                )
                 GROUP BY film_id
                 ORDER BY count(film_id) DESC
             )
-            {3}
+            LIMIT ?
+            """;
+
+    private static final String FIND_MOST_POPULAR_FILMS_BY_GENRE_QUERY = """
+            SELECT DISTINCT f.*, m.name AS mpa_name
+            FROM films f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            WHERE f.id IN (
+                SELECT film_id
+                FROM film_likes
+                WHERE
+                film_id IN (
+                    SELECT film_id
+                    FROM film_genres
+                    WHERE genre_id = ?
+                )
+                GROUP BY film_id
+                ORDER BY count(film_id) DESC
+            )
+            LIMIT ?
+            """;
+
+    private static final String FIND_MOST_POPULAR_FILMS_BY_YEAR_QUERY = """
+            SELECT DISTINCT f.*, m.name AS mpa_name
+            FROM films f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            WHERE f.id IN (
+                SELECT film_id
+                FROM film_likes
+                WHERE
+                film_id IN (
+                    SELECT id
+                    FROM films
+                    WHERE EXTRACT(YEAR FROM release_date) = ?
+                )
+                GROUP BY film_id
+                ORDER BY count(film_id) DESC
+            )
+            LIMIT ?
             """;
 
     private static final String FIND_COMMON_FILMS_QUERY = """
@@ -284,34 +328,14 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
 
     @Override
     public List<Film> getMostPopulars(Integer count, Long genreId, Long year) {
-        String genreForQuery = """
-            film_id IN (
-                SELECT film_id
-                FROM film_genres
-                WHERE genre_id = ?
-            )""";
-        String yearForQuery = """
-            film_id IN (
-                SELECT id
-                FROM films
-                WHERE EXTRACT(YEAR FROM release_date) = ?
-            )""";
-
         if (year != 0 && genreId != 0) {
-            return findMany(String.format(
-                    FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY,genreForQuery,"AND",yearForQuery,"LIMIT ?"),
-                    genreId, year, count
-            );
+            return findMany(FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY, genreId, year, count);
         } else if (year == 0 && genreId != 0) {
-            return findMany(String.format(
-                    FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY,genreForQuery," "," ","LIMIT ?"),
-                    genreId, count
-            );
+            return findMany(FIND_MOST_POPULAR_FILMS_BY_GENRE_QUERY, genreId, count);
+        } else if (year != 0) {
+            return findMany(FIND_MOST_POPULAR_FILMS_BY_YEAR_QUERY, year, count);
         } else {
-            return findMany(String.format(
-                    FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY, yearForQuery, " ", " ", "LIMIT ?"),
-                    year, count
-            );
+            return Collections.emptyList();
         }
     }
 }
