@@ -3,11 +3,10 @@ package ru.yandex.practicum.filmorate.service;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.List;
-import java.util.Set;
 
 public interface GenreService {
 
-    void saveGenres(Long filmId, Set<Integer> uniqGenres);
+    List<Genre> saveGenres(Long filmId, List<Genre> genresList);
 
     Genre getById(Integer genreId);
 

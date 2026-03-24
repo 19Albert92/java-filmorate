@@ -14,4 +14,6 @@ public interface GenreRepository {
     List<Genre> findAll();
 
     List<Genre> findByFilmId(Long filmId);
+
+    void clearGenresByFilmId(Long filmId);
 }
