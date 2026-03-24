@@ -107,6 +107,16 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Collection<FilmDto> getFilteredFilms(String query, List<SearchBy> by) {
+        if (by == null || by.isEmpty() || query == null || query.isBlank()) {
+            return filmStorage.getPopularFilmByLikes().stream()
+                    .map(FilmMapper::mapToFilmDto)
+                    .peek(film -> {
+                        film.setGenres(genreService.getGenresByFilmId(film.getId()));
+                        film.setDirectors(directorService.findDirectorsByFilmId(film.getId()));
+                    })
+                    .toList();
+        }
+
         List<Film> filteredFilms;
 
         List<String> byParams = by.stream()
@@ -222,8 +232,9 @@ public class FilmServiceImpl implements FilmService {
 
         film = filmStorage.update(film);
 
+        directorStorage.removeFilmDirectors(film.getId());
+
         if (!uniqDirectors.isEmpty()) {
-            directorStorage.removeFilmDirectors(film.getId());
             directorService.saveDirectors(film.getId(), uniqDirectors);
 
             film.setDirectors(request.getDirectors());
@@ -245,6 +256,8 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Collection<FilmDto> getFilmsByDirectorId(Long id, SortBy sortBy) {
+        checkDirectorExists(id);
+
         String query = (sortBy != null) ? sortBy.name() : SortBy.defaultSort.name();
 
         List<Film> returnedFilms;
@@ -276,6 +289,11 @@ public class FilmServiceImpl implements FilmService {
         } catch (EmptyResultDataAccessException e) {
             return Collections.emptyList();
         }
+    }
+
+    private void checkDirectorExists(Long directorId) {
+        directorStorage.findById(directorId)
+                .orElseThrow(() -> new NotFoundException("Режиссер не найден"));
     }
 }
 
