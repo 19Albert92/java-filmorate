@@ -25,4 +25,6 @@ public interface FilmRepository extends CrudMethodsRepository<Film, Long> {
     List<Film> getFilmsByDirectorIdSortedByYear(Long id);
 
     List<Film> getFilmsByDirectorIdSortedByLikes(Long id);
+
+    void deleteById(Long id);
 }

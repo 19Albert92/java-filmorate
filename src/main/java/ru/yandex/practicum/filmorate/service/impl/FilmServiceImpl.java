@@ -294,10 +294,19 @@ public class FilmServiceImpl implements FilmService {
         }
     }
 
+    @Override
+    @Transactional
+    public void delete(Long filmId) {
+
+        filmStorage.findById(filmId)
+                .orElseThrow(() -> new NotFoundException("Фильм не найден"));
+
+        filmStorage.deleteById(filmId);
+    }
+
     private void checkDirectorExists(Long directorId) {
         directorStorage.findById(directorId)
                 .orElseThrow(() -> new NotFoundException("Режиссер не найден"));
     }
 }
-
 

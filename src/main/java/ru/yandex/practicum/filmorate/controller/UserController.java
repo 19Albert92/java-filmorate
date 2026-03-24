@@ -123,4 +123,12 @@ public class UserController {
 
         return filmService.getRecommendations(id);
     }
+
+    @DeleteMapping("/{userId}")
+    public void delete(@PathVariable Long userId) {
+
+        CommonValidate.checkNotNullAndPositive(userId, "Параметр userId должен быть положительным");
+
+        userService.delete(userId);
+    }
 }
