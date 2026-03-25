@@ -305,7 +305,6 @@ public class FilmServiceImpl implements FilmService {
             return Collections.emptyList();
         }
     }
-}
 
     @Override
     @Transactional
