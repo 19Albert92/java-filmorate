@@ -66,7 +66,7 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     @Transactional
-    public boolean toggleLike(Long filmId, Long userid, OperationType operation) {
+    public void toggleLike(Long filmId, Long userid, OperationType operation) {
 
         userStorage.findById(userid)
                 .orElseThrow(() -> new NotFoundException("Пользователя с данным id нет"));
@@ -83,13 +83,13 @@ public class FilmServiceImpl implements FilmService {
         feedDto.setOperation(operation);
         feedService.addFeed(feedDto);
 
-        if (isExists) {
+        if (operation.equals(OperationType.REMOVE)) {
             likeStorage.deleteLike(filmId, userid);
-        } else {
-            likeStorage.addLike(filmId, userid);
         }
 
-        return true;
+        if (operation.equals(OperationType.ADD) && !isExists) {
+            likeStorage.addLike(filmId, userid);
+        }
     }
 
     @Override

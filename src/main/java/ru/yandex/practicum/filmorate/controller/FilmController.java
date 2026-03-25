@@ -69,7 +69,7 @@ public class FilmController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public boolean addLike(
+    public void addLike(
             @PathVariable Long id,
             @PathVariable Long userId
     ) {
@@ -78,7 +78,7 @@ public class FilmController {
 
         CommonValidate.checkNotNullAndPositive(userId, "Параметр userId должен быть положительным");
 
-        return filmService.toggleLike(id, userId, OperationType.ADD);
+        filmService.toggleLike(id, userId, OperationType.ADD);
     }
 
     @PutMapping
@@ -90,7 +90,7 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public boolean deleteLike(
+    public void deleteLike(
             @PathVariable Long id,
             @PathVariable Long userId
     ) {
@@ -99,7 +99,7 @@ public class FilmController {
 
         CommonValidate.checkNotNullAndPositive(userId, "Параметр userId должен быть положительным");
 
-        return filmService.toggleLike(id, userId, OperationType.REMOVE);
+        filmService.toggleLike(id, userId, OperationType.REMOVE);
     }
 
     @DeleteMapping("/{filmId}")

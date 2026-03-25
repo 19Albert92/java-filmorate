@@ -20,7 +20,7 @@ public interface FilmService {
 
     Collection<FilmDto> findAll();
 
-    boolean toggleLike(Long filmId, Long userid, OperationType operation);
+    void toggleLike(Long filmId, Long userid, OperationType operation);
 
     Collection<FilmDto> getPopularFilmByLikes(Integer count);
 
