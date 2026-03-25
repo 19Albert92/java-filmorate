@@ -338,7 +338,10 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             return findMany(FIND_MOST_POPULAR_FILMS_BY_YEAR_QUERY, year, count);
         } else {
             return Collections.emptyList();
+        }
+    }
 
+    @Override
     public void deleteById(Long id) {
 
         int rows = update(DELETE_FILM_BY_ID_QUERY, id);

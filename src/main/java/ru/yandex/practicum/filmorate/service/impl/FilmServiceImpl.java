@@ -310,7 +310,6 @@ public class FilmServiceImpl implements FilmService {
     @Override
     @Transactional
     public void delete(Long filmId) {
-
         filmStorage.findById(filmId)
                 .orElseThrow(() -> new NotFoundException("Фильм не найден"));
 
