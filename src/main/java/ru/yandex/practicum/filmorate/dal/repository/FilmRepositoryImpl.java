@@ -79,65 +79,38 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             """;
 
     private static final String FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY = """
-            SELECT DISTINCT f.*, m.name AS mpa_name
+            SELECT f.*, m.name AS mpa_name
             FROM films f
             LEFT JOIN mpa AS m ON f.mpa_id = m.id
-            WHERE f.id IN (
-                SELECT film_id
-                FROM film_likes
-                WHERE
-                film_id IN (
-                    SELECT film_id
-                    FROM film_genres
-                    WHERE genre_id = ?
-                )
-                AND
-                film_id IN (
-                    SELECT id
-                    FROM films
-                    WHERE EXTRACT(YEAR FROM release_date) = ?
-                )
-                GROUP BY film_id
-                ORDER BY count(film_id) DESC
-            )
+            LEFT JOIN film_likes fl ON f.id = fl.film_id
+            INNER JOIN film_genres fg ON f.id = fg.film_id
+            WHERE fg.genre_id = ?
+            AND EXTRACT(YEAR FROM f.release_date) = ?
+            GROUP BY f.id, m.name
+            ORDER BY COUNT(fl.user_id) DESC
             LIMIT ?
             """;
 
     private static final String FIND_MOST_POPULAR_FILMS_BY_GENRE_QUERY = """
-            SELECT DISTINCT f.*, m.name AS mpa_name
+            SELECT f.*, m.name AS mpa_name
             FROM films f
             LEFT JOIN mpa AS m ON f.mpa_id = m.id
-            WHERE f.id IN (
-                SELECT film_id
-                FROM film_likes
-                WHERE
-                film_id IN (
-                    SELECT film_id
-                    FROM film_genres
-                    WHERE genre_id = ?
-                )
-                GROUP BY film_id
-                ORDER BY count(film_id) DESC
-            )
+            LEFT JOIN film_likes fl ON f.id = fl.film_id
+            INNER JOIN film_genres fg ON f.id = fg.film_id
+            WHERE fg.genre_id = ?
+            GROUP BY f.id, m.name
+            ORDER BY COUNT(fl.user_id) DESC
             LIMIT ?
             """;
 
     private static final String FIND_MOST_POPULAR_FILMS_BY_YEAR_QUERY = """
-            SELECT DISTINCT f.*, m.name AS mpa_name
+            SELECT f.*, m.name AS mpa_name
             FROM films f
             LEFT JOIN mpa AS m ON f.mpa_id = m.id
-            WHERE f.id IN (
-                SELECT film_id
-                FROM film_likes
-                WHERE
-                film_id IN (
-                    SELECT id
-                    FROM films
-                    WHERE EXTRACT(YEAR FROM release_date) = ?
-                )
-                GROUP BY film_id
-                ORDER BY count(film_id) DESC
-            )
+            LEFT JOIN film_likes fl ON f.id = fl.film_id
+            WHERE EXTRACT(YEAR FROM f.release_date) = ?
+            GROUP BY f.id, m.name
+            ORDER BY COUNT(fl.user_id) DESC
             LIMIT ?
             """;
 
