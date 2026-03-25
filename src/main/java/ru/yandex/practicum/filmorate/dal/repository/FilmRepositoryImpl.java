@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -307,10 +306,8 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
             return findMany(FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY, genreId, year, count);
         } else if (year == 0 && genreId != 0) {
             return findMany(FIND_MOST_POPULAR_FILMS_BY_GENRE_QUERY, genreId, count);
-        } else if (year != 0) {
-            return findMany(FIND_MOST_POPULAR_FILMS_BY_YEAR_QUERY, year, count);
         } else {
-            return Collections.emptyList();
+            return findMany(FIND_MOST_POPULAR_FILMS_BY_YEAR_QUERY, year, count);
         }
     }
 
