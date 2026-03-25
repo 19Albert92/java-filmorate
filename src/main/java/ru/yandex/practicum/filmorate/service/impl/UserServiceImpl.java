@@ -4,14 +4,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.FriendshipRepository;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
+import ru.yandex.practicum.filmorate.dto.feed.FeedDto;
 import ru.yandex.practicum.filmorate.dto.user.CreateUserRequest;
 import ru.yandex.practicum.filmorate.dto.user.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.user.UserDto;
 import ru.yandex.practicum.filmorate.exception.FriendShipException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.FriendStatus;
+import ru.yandex.practicum.filmorate.model.OperationType;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
@@ -23,10 +27,13 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userStorage;
 
+    private final FeedService feedService;
+
     private final FriendshipRepository friendshipStorage;
 
-    public UserServiceImpl(UserRepository userStorage, FriendshipRepository friendshipStorage) {
+    public UserServiceImpl(UserRepository userStorage, FeedService feedService, FriendshipRepository friendshipStorage) {
         this.userStorage = userStorage;
+        this.feedService = feedService;
         this.friendshipStorage = friendshipStorage;
     }
 
@@ -39,7 +46,11 @@ public class UserServiceImpl implements UserService {
 
         checkUsersExist(id, friendId);
 
-        return friendshipStorage.addFriend(id, friendId, FriendStatus.ACCEPTED);
+        boolean added = friendshipStorage.addFriend(id, friendId, FriendStatus.ACCEPTED);
+
+        saveFeed(friendId, id, OperationType.ADD);
+
+        return added;
     }
 
     @Override
@@ -52,6 +63,8 @@ public class UserServiceImpl implements UserService {
         checkUsersExist(id, friendId);
 
         friendshipStorage.removeFriend(id, friendId);
+
+        saveFeed(friendId, id, OperationType.REMOVE);
 
         return true;
     }
@@ -116,10 +129,28 @@ public class UserServiceImpl implements UserService {
                 .toList();
     }
 
+    @Override
+    public void delete(Long userId) {
+
+        userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+
+        userStorage.deleteById(userId);
+    }
+
     private void checkUsersExist(Long... users) {
         for (Long id : users) {
             userStorage.findById(id)
                     .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         }
+    }
+
+    private void saveFeed(Long entityId, Long userId, OperationType operation) {
+        FeedDto feedDto = new FeedDto();
+        feedDto.setEventType(EventType.FRIEND);
+        feedDto.setEntityId(entityId);
+        feedDto.setUserId(userId);
+        feedDto.setOperation(operation);
+        feedService.addFeed(feedDto);
     }
 }

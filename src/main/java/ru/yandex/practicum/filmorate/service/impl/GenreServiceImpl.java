@@ -1,13 +1,14 @@
 package ru.yandex.practicum.filmorate.service.impl;
 
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.GenreRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.GenreService;
-import ru.yandex.practicum.filmorate.dal.GenreRepository;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class GenreServiceImpl implements GenreService {
@@ -19,11 +20,28 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
-    public void saveGenres(Long filmId, Set<Integer> uniqGenres) {
+    public List<Genre> saveGenres(Long filmId, List<Genre> genresList) {
 
-        List<Object[]> genres = uniqGenres.stream().map(id -> new Object[]{filmId, id}).toList();
+        genreStorage.clearGenresByFilmId(filmId);
+
+        Set<Integer> uniqGenres = genresList.stream()
+                .map(Genre::getId)
+                .collect(Collectors.toSet());
+
+        for (Integer genreId : uniqGenres) {
+            genreStorage
+                    .findById(genreId)
+                    .orElseThrow(() -> new NotFoundException("Такого рейтинга нет"));
+        }
+
+        List<Object[]> genres = uniqGenres.stream()
+                .map(id -> new Object[]{filmId, id}).toList();
 
         genreStorage.save(genres);
+
+        return uniqGenres.stream()
+                .map(id -> new Genre(id, null))
+                .collect(Collectors.toList());
     }
 
     @Override
