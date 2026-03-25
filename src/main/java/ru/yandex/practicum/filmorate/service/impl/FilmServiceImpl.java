@@ -299,7 +299,10 @@ public class FilmServiceImpl implements FilmService {
         try {
             return filmStorage.getMostPopulars(count, genreId, year).stream()
                     .map(FilmMapper::mapToFilmDto)
-                    .peek(dto -> dto.setGenres(genreService.getGenresByFilmId(dto.getId())))
+                    .peek(dto -> {
+                        dto.setGenres(genreService.getGenresByFilmId(dto.getId()));
+                        dto.setDirectors(directorService.findDirectorsByFilmId(dto.getId()));
+                    })
                     .toList();
         } catch (EmptyResultDataAccessException e) {
             return Collections.emptyList();
