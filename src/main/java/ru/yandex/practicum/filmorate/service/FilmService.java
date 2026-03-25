@@ -32,5 +32,7 @@ public interface FilmService {
 
     Collection<FilmDto> getFilmsByDirectorId(Long id, SortBy sortBy);
 
+    Collection<FilmDto> getMostPopulars(Integer count, Long genreId, Long year);
+
     void delete(Long filmId);
 }

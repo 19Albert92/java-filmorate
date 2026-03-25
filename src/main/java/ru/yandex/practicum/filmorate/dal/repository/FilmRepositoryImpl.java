@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -75,6 +76,42 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
                 )
                 LIMIT 15
             )
+            """;
+
+    private static final String FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY = """
+            SELECT f.*, m.name AS mpa_name
+            FROM films f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            LEFT JOIN film_likes fl ON f.id = fl.film_id
+            INNER JOIN film_genres fg ON f.id = fg.film_id
+            WHERE fg.genre_id = ?
+            AND EXTRACT(YEAR FROM f.release_date) = ?
+            GROUP BY f.id, m.name
+            ORDER BY COUNT(fl.user_id) DESC
+            LIMIT ?
+            """;
+
+    private static final String FIND_MOST_POPULAR_FILMS_BY_GENRE_QUERY = """
+            SELECT f.*, m.name AS mpa_name
+            FROM films f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            LEFT JOIN film_likes fl ON f.id = fl.film_id
+            INNER JOIN film_genres fg ON f.id = fg.film_id
+            WHERE fg.genre_id = ?
+            GROUP BY f.id, m.name
+            ORDER BY COUNT(fl.user_id) DESC
+            LIMIT ?
+            """;
+
+    private static final String FIND_MOST_POPULAR_FILMS_BY_YEAR_QUERY = """
+            SELECT f.*, m.name AS mpa_name
+            FROM films f
+            LEFT JOIN mpa AS m ON f.mpa_id = m.id
+            LEFT JOIN film_likes fl ON f.id = fl.film_id
+            WHERE EXTRACT(YEAR FROM f.release_date) = ?
+            GROUP BY f.id, m.name
+            ORDER BY COUNT(fl.user_id) DESC
+            LIMIT ?
             """;
 
     private static final String FIND_COMMON_FILMS_QUERY = """
@@ -262,6 +299,19 @@ public class FilmRepositoryImpl extends BaseRepository<Film> implements ru.yande
     @Override
     public List<Film> getFilmsByDirectorIdSortedByLikes(Long id) {
         return findMany(FIND_FILMS_BY_DIRECTOR_ID_SORTED_BY_LIKES_QUERY, id);
+    }
+
+    @Override
+    public List<Film> getMostPopulars(Integer count, Long genreId, Long year) {
+        if (year != 0 && genreId != 0) {
+            return findMany(FIND_MOST_POPULAR_FILMS_BY_GENRE_AND_YEAR_QUERY, genreId, year, count);
+        } else if (year == 0 && genreId != 0) {
+            return findMany(FIND_MOST_POPULAR_FILMS_BY_GENRE_QUERY, genreId, count);
+        } else if (year != 0) {
+            return findMany(FIND_MOST_POPULAR_FILMS_BY_YEAR_QUERY, year, count);
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     @Override

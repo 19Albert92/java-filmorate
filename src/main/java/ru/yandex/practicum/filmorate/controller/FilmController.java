@@ -43,12 +43,17 @@ public class FilmController {
 
     @GetMapping("/popular")
     public Collection<FilmDto> findPopularFilms(
-            @RequestParam(defaultValue = "10") Integer count
+            @RequestParam(defaultValue = "20") @Positive Integer limit,
+            @RequestParam(defaultValue = "0") Long genreId,
+            @RequestParam(defaultValue = "0") Long year
     ) {
+        if (genreId != 0 || year != 0) {
+            return filmService.getMostPopulars(limit, genreId, year);
+        } else {
+            CommonValidate.checkNotNullAndPositive(limit, "Параметр count должен быть положительным");
 
-        CommonValidate.checkNotNullAndPositive(count, "Параметр count должен быть положительным");
-
-        return filmService.getPopularFilmByLikes(count);
+            return filmService.getPopularFilmByLikes(limit);
+        }
     }
 
     @GetMapping("/common")
@@ -126,4 +131,14 @@ public class FilmController {
     ) {
         return filmService.getFilmsByDirectorId(directorId, sortBy);
     }
+
+//    @GetMapping("/popular?count={limit}&genreId={genreId}&year={year}")
+//    public Collection<FilmDto> findMostPopulars(
+//            @PathVariable @Positive Long limit,
+//            @PathVariable Long genreId,
+//            @PathVariable Long year
+//    ) {
+//        log.info("\nlimit = {}, genreId = {}, year = {}", limit, genreId, year);
+//        return filmService.getMostPopulars(limit, genreId, year);
+//    }
 }

@@ -295,9 +295,20 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
+    public Collection<FilmDto> getMostPopulars(Integer count, Long genreId, Long year) {
+        try {
+            return filmStorage.getMostPopulars(count, genreId, year).stream()
+                    .map(FilmMapper::mapToFilmDto)
+                    .peek(dto -> dto.setGenres(genreService.getGenresByFilmId(dto.getId())))
+                    .toList();
+        } catch (EmptyResultDataAccessException e) {
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
     @Transactional
     public void delete(Long filmId) {
-
         filmStorage.findById(filmId)
                 .orElseThrow(() -> new NotFoundException("Фильм не найден"));
 
