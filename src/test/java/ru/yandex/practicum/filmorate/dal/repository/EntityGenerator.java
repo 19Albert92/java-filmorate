@@ -2,8 +2,10 @@ package ru.yandex.practicum.filmorate.dal.repository;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
@@ -11,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+@Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EntityGenerator {
 
@@ -62,4 +65,29 @@ public class EntityGenerator {
         return films;
     }
 
+    public static List<Review> generateReview(int count, List<User> createdUsers, List<Film> createdFilms) {
+
+        List<Review> reviews = new ArrayList<>();
+
+        Random random = new Random();
+
+        for (int i = 0; i < count; i++) {
+
+            User randomUser = createdUsers.get(random.nextInt(createdUsers.size()));
+
+            Film randomFilm = createdFilms.get(random.nextInt(createdFilms.size()));
+
+            reviews.add(
+                    Review.builder()
+                            .content(generateText(24))
+                            .filmId(randomFilm.getId())
+                            .userId(randomUser.getId())
+                            .isPositive(random.nextBoolean())
+                            .useful(0)
+                            .build()
+            );
+        }
+
+        return reviews;
+    }
 }

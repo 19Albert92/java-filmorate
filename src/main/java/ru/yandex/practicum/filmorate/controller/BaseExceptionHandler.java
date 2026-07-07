@@ -44,14 +44,14 @@ public class BaseExceptionHandler {
     @ExceptionHandler(NotValidParamException.class)
     public ResponseEntity<ErrorResponse> handleNotValidParamException(NotValidParamException e) {
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse(e.getMessage(), Map.of()));
     }
 
     @ExceptionHandler(ParamNullPointerException.class)
     public ResponseEntity<ErrorResponse> handleParamNullPointerException(ParamNullPointerException e) {
         return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
+                .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse(e.getMessage(), Map.of()));
     }
 

@@ -7,7 +7,6 @@ import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.util.validate.OnUpdate;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -40,7 +39,7 @@ public class UpdateFIlmRequestTest {
 
         updateFilmRequest.setId(null);
 
-        Set<ConstraintViolation<UpdateFilmRequest>> violations = validator.validate(updateFilmRequest,  OnUpdate.class);
+        Set<ConstraintViolation<UpdateFilmRequest>> violations = validator.validate(updateFilmRequest);
 
         assertTrue(violations.stream()
                 .anyMatch(v -> v.getMessage().equals("Id не пришел или пришел пустым")));
